@@ -2,7 +2,7 @@
 (function () {
     angular
         .module('cybersponse')
-        .controller('editAgenticAssistant142DevCtrl', editAgenticAssistant142DevCtrl);
+        .controller('editAgenticAssistant145DevCtrl', editAgenticAssistant145DevCtrl);
 
     // Only the dashboard's $uibModal instantiates this controller (the inline
     // settings overlay ng-includes edit.html under the VIEW scope, whose own
@@ -10,9 +10,9 @@
     // `$uibModalInstance` as controller LOCALS, not injector services, so they
     // must be listed in $inject: $injector.get() throws for both and Save
     // silently does nothing. (KNOWLEDGEBASE.md 5.2)
-    editAgenticAssistant142DevCtrl.$inject = ['$scope', '$uibModalInstance', 'config'];
+    editAgenticAssistant145DevCtrl.$inject = ['$scope', '$uibModalInstance', 'config'];
 
-    function editAgenticAssistant142DevCtrl($scope, $uibModalInstance, config) {
+    function editAgenticAssistant145DevCtrl($scope, $uibModalInstance, config) {
 
         $scope.config = config || {};
         $scope.save = function () { $uibModalInstance.close($scope.config); };

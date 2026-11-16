@@ -29,7 +29,7 @@
 
     angular
         .module('cybersponse')
-        .controller('agenticAssistant142DevCtrl', agenticAssistant142DevCtrl)
+        .controller('agenticAssistant145DevCtrl', agenticAssistant145DevCtrl)
         // Grow the composer textarea to fit its content (up to the CSS
         // max-height, then scroll). Fires on the analyst typing AND on
         // programmatic fills like "Case context", which set ng-model directly
@@ -59,7 +59,7 @@
     // its own `contract_version` in every envelope; we compare against this.
     var WIDGET_CONTRACT_VERSION = '2.8.0';
 
-    agenticAssistant142DevCtrl.$inject = [
+    agenticAssistant145DevCtrl.$inject = [
         '$scope', '$timeout', '$window', '$sce', '$injector', '$http', '$q', 'fsrPbAgentService',
         'fsrPbMarkdownService', 'fsrPbExportService',
         'fsrPbYamlService',
@@ -69,7 +69,7 @@
         'fsrPbCardsService'
     ];
 
-    function agenticAssistant142DevCtrl($scope, $timeout, $window, $sce, $injector, $http, $q, fsrPbAgentService, fsrPbMarkdownService, fsrPbExportService, fsrPbYamlService, fsrPbHtmlService, fsrPbEntityCardsService, fsrPbTranscriptService, fsrPbCardsService) {
+    function agenticAssistant145DevCtrl($scope, $timeout, $window, $sce, $injector, $http, $q, fsrPbAgentService, fsrPbMarkdownService, fsrPbExportService, fsrPbYamlService, fsrPbHtmlService, fsrPbEntityCardsService, fsrPbTranscriptService, fsrPbCardsService) {
         // Pure helpers live in the widgetAssets/js/*.service.js files; the names below are bound to them.
         var _PENDING_CARD_TYPES = fsrPbTranscriptService.PENDING_CARD_TYPES;
         function _isStaleReplay(transcript) {
