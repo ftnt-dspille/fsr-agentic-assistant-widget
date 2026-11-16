@@ -1,0 +1,53 @@
+{
+  "scenario": "approval_expired",
+  "_comment": "An approval answered after its 10-minute window (or already answered elsewhere): chat_resume returns the connector's approval_not_found refusal. The card must say it expired and nothing ran, in plain words, not the raw 'no suspended session' text.",
+  "delays": {
+    "chat_turn": 50,
+    "chat_resume": 50
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "mock-turn-1",
+        "stop_reason": "approval_required",
+        "transcript": [
+          {
+            "type": "approval_request",
+            "approval_id": "ap-containment-2",
+            "tool_use_id": "tu-1",
+            "tool": "mcp_soc__block_indicator",
+            "tier": 3,
+            "args_hash": "d00dfeed",
+            "summary": "Block 198.51.100.3 at the perimeter.",
+            "preview": {
+              "tool": "mcp_soc__block_indicator",
+              "args": {
+                "indicator": "198.51.100.3",
+                "indicator_type": "IP Address"
+              }
+            }
+          },
+          {
+            "type": "text",
+            "text": "Blocking this address needs your approval."
+          }
+        ]
+      }
+    },
+    {
+      "action": "chat_resume",
+      "response": {
+        "ok": false,
+        "code": "approval_not_found",
+        "error": "no suspended session for approval_id 'ap-containment-2'; may have expired (TTL 10m) or already been resumed."
+      }
+    }
+  ]
+}

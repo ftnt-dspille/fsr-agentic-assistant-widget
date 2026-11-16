@@ -1,0 +1,70 @@
+{
+    "scenario": "immediate_rejected",
+    "delays": { "chat_turn": 1500, "chat_resume": 1100 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-opener",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    {
+                        "type": "choice_card",
+                        "id": "intent",
+                        "prompt": "Pick an approach:",
+                        "options": [
+                            { "label": "Take immediate action", "value": "immediate" },
+                            { "label": "Build a playbook",      "value": "playbook" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-action-kind",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    {
+                        "type": "choice_card",
+                        "id": "action_kind",
+                        "prompt": "Choose an action:",
+                        "options": [
+                            { "label": "Block IP at edge", "value": "block_ip" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-action-card",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "action_card",
+                        "id": "card-block-ip-1",
+                        "connector": "fortinet-fortigate",
+                        "operation": "block_ip",
+                        "summary": "FortiGate: block 1.2.3.4",
+                        "args": { "ip": "1.2.3.4", "policy": "block-list" },
+                        "editable_fields": ["ip", "policy"]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-rejected",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Cancelled. No action taken. The decision was logged for audit." }
+                ]
+            }
+        }
+    ]
+}

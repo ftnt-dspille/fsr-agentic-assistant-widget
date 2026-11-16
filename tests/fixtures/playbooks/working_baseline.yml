@@ -1,0 +1,28 @@
+# Scenario: clean baseline — for Explain / Optimize.
+# A minimal, valid FSR playbook: start -> one connector op -> end. No issues to
+# find; used to assert Explain describes it and Optimize proposes non-breaking
+# refinements without inventing regressions.
+collection: FSRPB Fixtures
+description: Clean single-op playbook used as the Explain/Optimize baseline.
+visible: true
+
+playbooks:
+  - name: Working Baseline
+    is_active: true
+    parameters: [alert_id]
+    steps:
+      - name: trigger
+        type: start
+        next: Fetch alert
+
+      - name: Fetch alert
+        type: connector
+        arguments:
+          connector: cyops_utilities
+          operation: no_op
+          params:
+            alert_id: "{{ vars.input.params.alert_id }}"
+        next: Done
+
+      - name: Done
+        type: end

@@ -1,0 +1,31 @@
+{
+    "scenario": "composer_busy",
+    "contract_version": "2.8.0",
+    "default_session_id": "demo-composer-busy-001",
+    "_doc": "A slow plain-text turn, so the composer can be checked while a reply is still in flight (typing stays open, Send waits).",
+    "delays": {
+        "chat_turn": 4000
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-composer-busy",
+                "contract_version": "2.8.0",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Here is the summary of the case."
+                    }
+                ]
+            }
+        }
+    ]
+}

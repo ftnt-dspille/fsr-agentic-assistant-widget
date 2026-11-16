@@ -1,0 +1,134 @@
+{
+    "scenario": "manual_input_choice",
+    "_comment": "A run_playbook approval its persona would have asked about offers 'Approve & always allow' (always_allow), which must send remember: true. The run then pauses on a results form with two buttons and its data in a markdown description; the analyst picks one and its label must ride back as option. Each resume's matching entry comes first; the trailing entry is the fallback served when the wire value is missing, so the visible reply proves what was sent.",
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50,
+        "respond_manual_input": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-choice-1",
+                "stop_reason": "approval_required",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-1",
+                        "name": "run_playbook",
+                        "input": {
+                            "playbook": "Get Metadata Source Data on Device",
+                            "follow": true
+                        }
+                    },
+                    {
+                        "type": "approval_request",
+                        "approval_id": "ap-1",
+                        "tool": "run_playbook",
+                        "tool_use_id": "tu-1",
+                        "args": {
+                            "playbook": "Get Metadata Source Data on Device",
+                            "follow": true
+                        },
+                        "tier": 3,
+                        "requires_step_up": false,
+                        "always_allow": {
+                            "persona": "ztpf_metadata_sources",
+                            "playbook": "Get Metadata Source Data on Device"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": {
+                "decision": "approve",
+                "remember": true
+            },
+            "response": {
+                "turn_id": "t-choice-2",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-1",
+                        "name": "run_playbook",
+                        "tool": "run_playbook",
+                        "content": "{\"ok\": false, \"code\": \"awaiting_input\", \"playbook\": \"Get Metadata Source Data on Device\", \"triggered\": true, \"run_pk\": \"80929\", \"status\": \"awaiting\"}"
+                    },
+                    {
+                        "type": "manual_input",
+                        "id": "652",
+                        "workflow_run_iri": "/wf/api/workflows/80929/",
+                        "question": "Data Collected\n\n**Metadata Results**\n```json\n{\"available\": [\"7.4.3\", \"7.6.1\"]}\n```",
+                        "fields": [],
+                        "buttons": [
+                            {
+                                "label": "Ok",
+                                "primary": true
+                            },
+                            {
+                                "label": "Save Example",
+                                "primary": false
+                            }
+                        ]
+                    },
+                    {
+                        "type": "text",
+                        "text": "The run collected the firmware list and is waiting on you: keep it as an example, or just continue."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-choice-wrong",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "WRONG: the approval arrived without remember."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "respond_manual_input",
+            "match": {
+                "option": "Save Example"
+            },
+            "response": {
+                "turn_id": "t-choice-3",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Saved the collected data as an example. The run finished."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "respond_manual_input",
+            "response": {
+                "turn_id": "t-choice-wrong2",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "WRONG: the chosen button was not sent."
+                    }
+                ]
+            }
+        }
+    ]
+}

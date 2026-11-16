@@ -1,0 +1,54 @@
+{
+    "scenario": "card_attribution",
+    "delays": {
+        "chat_turn": 40
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-attr-1",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu_containment_1",
+                        "name": "find_containment_actions",
+                        "input": {
+                            "target_type": "ip"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu_containment_1",
+                        "content": "{\"ok\":true,\"actions\":[{\"connector\":\"fortigate-firewall\",\"op\":\"block_ip\"}]}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "I'll check containment options for this IP before staging a card."
+                    },
+                    {
+                        "type": "action_card",
+                        "id": "act-block-1",
+                        "connector": "fortigate-firewall",
+                        "operation": "block_ip",
+                        "summary": "Block 1.2.3.4",
+                        "args": {
+                            "ip": "1.2.3.4"
+                        },
+                        "editable_fields": [
+                            "ip"
+                        ],
+                        "preceding_tool_use_id": "tu_containment_1"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,79 @@
+{
+    "scenario": "playbook_draft_branching",
+    "delays": { "chat_turn": 1200, "chat_resume": 1000 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-draft",
+                "stop_reason": "awaiting_playbook_offer",
+                "transcript": [
+                    { "type": "text", "text": "I enriched **102.220.160.21**, confirmed it malicious, blocked it at the FortiGate edge and quarantined **smithDesktop**. I compiled the steps into a draft playbook from the actions I actually ran -- review the wiring and any gaps before saving." },
+                    {
+                        "type": "playbook_offer",
+                        "id": "pb-offer-c2-draft",
+                        "summary": "I traced and contained the C2 channel. Save this investigation as a reviewable, repeatable playbook?",
+                        "title_suggestion": "C2 Containment -- 102.220.160.21",
+                        "editable_title": true,
+                        "ops_summary": [
+                            { "connector": "virustotal", "operation": "get_ip_report", "label": "Enrich 102.220.160.21",
+                              "skill_id": "enrich_ip", "step_type": "connector", "wiring_label": "uses the alert source IP", "verified": true },
+                            { "connector": "fortigate-firewall", "operation": "block_ip_new", "label": "Block 102.220.160.21",
+                              "skill_id": "block_ip", "step_type": "connector", "wiring_label": "uses the IP from Enrich 102.220.160.21",
+                              "verified": true, "branch": "if malicious" },
+                            { "connector": "fortiedr", "operation": "isolate_endpoint", "label": "Quarantine smithDesktop",
+                              "skill_id": "isolate_host", "step_type": "connector", "wiring_label": "host could not be auto-wired -- confirm before run",
+                              "verified": false, "branch": "if malicious" },
+                            { "connector": "fortisoar", "operation": "create_ticket", "label": "Create ticket",
+                              "skill_id": "create_record", "step_type": "connector", "wiring_label": "uses the alert summary",
+                              "verified": true, "branch": "else" }
+                        ],
+                        "draft_steps": [
+                            { "node": "Enrich 102.220.160.21", "step_type": "connector", "verified": true },
+                            { "node": "Malicious?", "step_type": "decision", "verified": true, "branches": {
+                                "if malicious": ["Block 102.220.160.21", "Quarantine smithDesktop"],
+                                "else": ["Create ticket"]
+                            } }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "decision": "decline" },
+            "response": {
+                "turn_id": "t-draft-declined",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "No problem -- I won't save a playbook. The containment actions remain in effect and were logged for audit." }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "decision": "accept" },
+            "response": {
+                "turn_id": "t-draft-accepted",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Saved. The reviewed draft is now a repeatable playbook." },
+                    {
+                        "type": "info_card",
+                        "id": "card-pb-draft-pushed",
+                        "variant": "playbook_pushed",
+                        "severity": "ok",
+                        "title": "Playbook pushed",
+                        "blocks": [
+                            { "kind": "rows", "rows": [
+                                { "label": "Playbook", "value": "C2 Containment -- 102.220.160.21" },
+                                { "label": "Workflow", "value": "/api/3/workflows/c2-draft-123" }
+                            ] }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

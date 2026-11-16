@@ -1,0 +1,297 @@
+{
+    "scenario": "playbook_soc_demo",
+    "_doc": "Unified demo. Paste any summary. First chat_turn returns intent picker. The next chat_resume branches on `value` -- pick 'immediate' to go through the immediate-action flow, 'playbook' to draft & run a hunt playbook. Demonstrates choice_card branching and a multi-select chip.",
+    "delays": { "chat_turn": 1500, "chat_resume": 1200, "respond_manual_input": 1500 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-opener",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "I read the FortiSOC summary. Outbound C2 to **1.2.3.4** from host **HR-WS-04**. What would you like to do?" },
+                    {
+                        "type": "choice_card",
+                        "id": "intent",
+                        "prompt": "Pick an approach:",
+                        "options": [
+                            { "label": "Take immediate action", "value": "immediate", "hint": "One-shot block/quarantine via MCP execute" },
+                            { "label": "Build a repeatable playbook", "value": "playbook", "hint": "Hunt + contain workflow you can re-run" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "value": "immediate" },
+            "response": {
+                "turn_id": "t-immediate-action-kind",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "OK, immediate action. You can pick more than one -- I'll stack them in order." },
+                    {
+                        "type": "choice_card",
+                        "id": "action_kind",
+                        "prompt": "Choose one or more actions:",
+                        "multi": true,
+                        "min_select": 1,
+                        "options": [
+                            { "label": "Block IP at edge",     "value": "block_ip" },
+                            { "label": "Quarantine host",      "value": "quarantine" },
+                            { "label": "Disable user account", "value": "disable_user" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "action_kind" },
+            "response": {
+                "turn_id": "t-pick-connector",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "Got it. **Block IP 1.2.3.4** -- pick one or more destinations. Edge firewalls drop traffic immediately; threat-intel feeds propagate to every device that subscribes; FortiManager pushes a policy revision to all managed devices in the group." },
+                    {
+                        "type": "choice_card",
+                        "id": "connector_pick",
+                        "prompt": "Where should the block apply?",
+                        "multi": true,
+                        "min_select": 1,
+                        "options": [
+                            { "label": "FortiGate · edge-fw-1 (HQ)",        "value": "fgt-hq",      "hint": "Drop policy on HQ perimeter, VDOM=root, block-list address group" },
+                            { "label": "FortiGate · edge-fw-2 (EU branch)", "value": "fgt-eu",      "hint": "Drop policy on EU branch perimeter, VDOM=root" },
+                            { "label": "FortiGate · dc-fw-1 (datacenter)",  "value": "fgt-dc",      "hint": "East-west drop on datacenter spine" },
+                            { "label": "FortiGuard · custom IOC feed",      "value": "feed-fgd",   "hint": "Push to FortiGuard tenant feed -- propagates to every subscribed device in ~5 min" },
+                            { "label": "MISP · soc-shared feed",            "value": "feed-misp",  "hint": "Append to community MISP event; shared with partner SOCs" },
+                            { "label": "FortiManager · group=all-edge",     "value": "fmg-all",    "hint": "Revision-controlled policy push to all 14 edge devices" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "connector_pick" },
+            "response": {
+                "turn_id": "t-action-card",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    { "type": "text", "text": "Here's what I'll run. The IP, address-group, and comment are shared across every selected destination. Edit if you need to, then Confirm." },
+                    {
+                        "type": "action_card",
+                        "id": "card-block-ip-1",
+                        "connector": "multi",
+                        "operation": "block_ip",
+                        "summary": "Block 1.2.3.4 across selected destinations",
+                        "args": {
+                            "ip": "1.2.3.4",
+                            "address_group": "soc-blocklist",
+                            "policy_name": "deny-soc-blocklist",
+                            "comment": "Auto: SOC AI summary, alert #4821 (HR-WS-04 → C2)",
+                            "duration_minutes": 1440,
+                            "destinations": "fgt-hq, fgt-eu, feed-fgd"
+                        },
+                        "editable_fields": ["ip", "address_group", "policy_name", "comment", "duration_minutes", "destinations"]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "decision": "approve", "card_id": "card-block-ip-1" },
+            "response": {
+                "turn_id": "t-executed",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "tool_use",    "id": "mcp-1", "name": "execute_action", "input": { "connector": "fortinet-fortigate", "config_id": "edge-fw-1", "operation": "add_to_address_group", "args": { "ip": "1.2.3.4", "group": "soc-blocklist" } } },
+                    { "type": "tool_result", "tool_use_id": "mcp-1", "content": "{\"status\":\"success\",\"object_id\":\"FW-OBJ-9118\",\"applied_to\":\"edge-fw-1\",\"vdom\":\"root\"}" },
+                    { "type": "tool_use",    "id": "mcp-2", "name": "execute_action", "input": { "connector": "fortinet-fortigate", "config_id": "edge-fw-2", "operation": "add_to_address_group", "args": { "ip": "1.2.3.4", "group": "soc-blocklist" } } },
+                    { "type": "tool_result", "tool_use_id": "mcp-2", "content": "{\"status\":\"success\",\"object_id\":\"FW-OBJ-2204\",\"applied_to\":\"edge-fw-2\",\"vdom\":\"root\"}" },
+                    { "type": "tool_use",    "id": "mcp-3", "name": "execute_action", "input": { "connector": "fortinet-fortiguard", "operation": "append_ioc_feed", "args": { "feed": "tenant-soc-iocs", "ip": "1.2.3.4" } } },
+                    { "type": "tool_result", "tool_use_id": "mcp-3", "content": "{\"status\":\"success\",\"feed_revision\":47,\"subscribers\":14,\"propagation_eta\":\"~5min\"}" },
+                    { "type": "text", "text": "Done. **1.2.3.4** added to `soc-blocklist`:\n- **edge-fw-1** (HQ) -- object `FW-OBJ-9118`\n- **edge-fw-2** (EU) -- object `FW-OBJ-2204`\n- **FortiGuard custom feed** -- revision 47, 14 subscribed devices, propagation ETA ~5 min\n\nAudit entry recorded in FortiSOAR (incident #4821)." },
+                    { "type": "usage", "input_tokens": 2410, "output_tokens": 540, "cost_usd": 0.0182 }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "decision": "reject", "card_id": "card-block-ip-1" },
+            "response": {
+                "turn_id": "t-rejected",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Cancelled. No action taken. The decision was logged for audit." }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "value": "playbook" },
+            "response": {
+                "turn_id": "t-hunt-pick",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "Good -- a playbook makes this re-runnable. Which hunt template should I build?" },
+                    {
+                        "type": "choice_card",
+                        "id": "hunt_kind",
+                        "prompt": "Hunt template:",
+                        "options": [
+                            { "label": "Retroactive IOC sweep",  "value": "ioc_sweep", "hint": "FortiAnalyzer search + EDR quarantine + edge block" },
+                            { "label": "Lateral-movement check", "value": "lateral" },
+                            { "label": "Persistence sweep",      "value": "persistence" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "hunt_kind" },
+            "response": {
+                "turn_id": "t-build-confirm",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "Drafting **IOC Sweep & Contain** with FortiAnalyzer → FortiEDR → FortiGate. The playbook will pause for your input before destructive steps.\n\n```yaml\nname: IOC Sweep and Contain\ntrigger:\n  type: manual\nsteps:\n  - id: hunt\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: search_logs\n    args: { device_filter: fortigate, query: \"srcip={{ vars.ioc }} OR dstip={{ vars.ioc }}\", window_hours: 72 }\n  - id: correlate\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: correlate_hosts\n  - id: confirm_hosts\n    type: manual_input\n    question: \"Confirm hosts to quarantine\"\n  - id: quarantine\n    type: connector\n    connector: fortinet-fortiedr\n    operation: isolate_hosts\n  - id: confirm_block\n    type: manual_input\n    question: \"Block IOC at edge?\"\n  - id: block_edge\n    type: connector\n    connector: fortinet-fortigate\n    operation: block_ip\n```" },
+                    {"type": "playbook_offer", "id": "offer-playbook_soc_demo-1", "summary": "Playbook drafted and verified.", "final_yaml": "name: IOC Sweep and Contain\ntrigger:\n  type: manual\nsteps:\n  - id: hunt\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: search_logs\n    args: { device_filter: fortigate, query: \"srcip={{ vars.ioc }} OR dstip={{ vars.ioc }}\", window_hours: 72 }\n  - id: correlate\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: correlate_hosts\n  - id: confirm_hosts\n    type: manual_input\n    question: \"Confirm hosts to quarantine\"\n  - id: quarantine\n    type: connector\n    connector: fortinet-fortiedr\n    operation: isolate_hosts\n  - id: confirm_block\n    type: manual_input\n    question: \"Block IOC at edge?\"\n  - id: block_edge\n    type: connector\n    connector: fortinet-fortigate\n    operation: block_ip\n"},
+                    {
+                        "type": "choice_card",
+                        "id": "build_confirm",
+                        "prompt": "Create this playbook in FortiSOAR?",
+                        "options": [
+                            { "label": "Yes, create", "value": "yes" },
+                            { "label": "No, cancel",  "value": "no" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "build_confirm", "value": "yes" },
+            "response": {
+                "turn_id": "t-built",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "tool_use",    "id": "v1", "name": "validate_yaml", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "v1", "content": "{\"ok\":true}" },
+                    { "type": "tool_use",    "id": "c1", "name": "compile_yaml",  "input": {} },
+                    { "type": "tool_result", "tool_use_id": "c1", "content": "{\"ok\":true,\"workflow_uuid\":\"wf-ioc-sweep-7\"}" },
+                    { "type": "tool_use",    "id": "p1", "name": "push_playbook", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "p1", "content": "{\"ok\":true,\"workflow_iri\":\"/api/3/workflows/wf-ioc-sweep-7\"}" },
+                    { "type": "text", "text": "Playbook **IOC Sweep and Contain** saved to FortiSOAR (`wf-ioc-sweep-7`)." },
+                    {
+                        "type": "choice_card",
+                        "id": "run_confirm",
+                        "prompt": "Run it now against this incident?",
+                        "options": [
+                            { "label": "Yes, run now",       "value": "yes" },
+                            { "label": "No, save for later", "value": "no" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "build_confirm", "value": "no" },
+            "response": {
+                "turn_id": "t-build-cancelled",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Cancelled. Nothing was created." }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "run_confirm", "value": "no" },
+            "response": {
+                "turn_id": "t-saved",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Saved for later. You can run it from the FortiSOAR playbooks view anytime." }
+                ]
+            }
+        },
+
+        {
+            "action": "chat_resume",
+            "match": { "choice_id": "run_confirm", "value": "yes" },
+            "response": {
+                "turn_id": "t-running-1",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    { "type": "text", "text": "Playbook started (run id `wfr-501`)." },
+                    { "type": "tool_use",    "id": "s1", "name": "step.hunt",      "input": { "ioc": "1.2.3.4", "window_hours": 72 } },
+                    { "type": "tool_result", "tool_use_id": "s1", "content": "{\"hits\":47,\"by_host\":{\"HR-WS-04\":31,\"HR-WS-12\":11,\"FIN-LAP-02\":5}}" },
+                    { "type": "tool_use",    "id": "s2", "name": "step.correlate", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "s2", "content": "{\"hosts\":[\"HR-WS-04\",\"HR-WS-12\",\"FIN-LAP-02\"]}" },
+                    {
+                        "type": "manual_input",
+                        "id": "mi-hosts",
+                        "workflow_run_iri": "/api/3/workflow_runs/wfr-501",
+                        "question": "Confirm host list before quarantine (edit to drop any false positives):",
+                        "fields": [
+                            { "name": "hosts", "label": "Hosts (comma-separated)", "default": "HR-WS-04,HR-WS-12,FIN-LAP-02" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "respond_manual_input",
+            "match": { "input_id": "mi-hosts" },
+            "response": {
+                "turn_id": "t-running-2",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    { "type": "tool_use",    "id": "s3", "name": "step.quarantine", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "s3", "content": "{\"isolated\":3,\"ids\":[\"ISO-9912\",\"ISO-9913\",\"ISO-9914\"]}" },
+                    {
+                        "type": "manual_input",
+                        "id": "mi-block",
+                        "workflow_run_iri": "/api/3/workflow_runs/wfr-501",
+                        "question": "Quarantine done. Also block 1.2.3.4 at the edge?",
+                        "fields": [
+                            { "name": "block", "label": "Block at edge (true/false)", "default": "true" }
+                        ]
+                    }
+                ]
+            }
+        },
+
+        {
+            "action": "respond_manual_input",
+            "match": { "input_id": "mi-block" },
+            "response": {
+                "turn_id": "t-done",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "tool_use",    "id": "s4", "name": "step.block_edge", "input": { "ip": "1.2.3.4" } },
+                    { "type": "tool_result", "tool_use_id": "s4", "content": "{\"ok\":true,\"policy_id\":\"BL-7741\"}" },
+                    { "type": "tool_use",    "id": "s5", "name": "step.update_incident", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "s5", "content": "{\"ok\":true,\"incident\":\"#4821\"}" },
+                    { "type": "text", "text": "Done. 3 hosts isolated, **1.2.3.4** blocked at edge, incident #4821 updated. Playbook **IOC Sweep and Contain** is saved -- you can re-run it on any future alert." },
+                    { "type": "usage", "input_tokens": 5120, "output_tokens": 1430, "cost_usd": 0.0392 }
+                ]
+            }
+        }
+    ]
+}

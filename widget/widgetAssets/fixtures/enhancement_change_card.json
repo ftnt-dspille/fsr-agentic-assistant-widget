@@ -1,0 +1,163 @@
+{
+ "scenario": "enhancement_change_card",
+ "delays": {
+  "chat_turn": 800,
+  "chat_resume": 600
+ },
+ "responses": [
+  {
+   "action": "chat_history",
+   "response": {
+    "turns": []
+   }
+  },
+  {
+   "action": "chat_turn",
+   "response": {
+    "turn_id": "t-enh-chg",
+    "stop_reason": "awaiting_enhancement_offer",
+    "transcript": [
+     {
+      "type": "tool_use",
+      "id": "tu-enh-1",
+      "name": "verify_enhancement",
+      "input": {
+       "workflow_iri": "/api/3/workflows/00000000-0000-0000-0000-000000000000"
+      }
+     },
+     {
+      "type": "tool_result",
+      "tool_use_id": "tu-enh-1",
+      "tool": "verify_enhancement",
+      "content": "{\"ok\": true, \"ready_to_push\": true}"
+     },
+     {
+      "type": "text",
+      "text": "The block now waits for your confirmation and uses the destination IP."
+     },
+     {
+      "type": "enhancement_offer",
+      "id": "enh-chg-1",
+      "summary": "Adds a confirmation before the block and blocks the destination IP.",
+      "verified_id": "ver-chg-1",
+      "final_yaml": "collection: SOC\nplaybooks:\n- name: Block Malicious IP\n  steps:\n  - {name: Start, type: start_on_create, module: alerts, next: Prompt Block IP}\n  - {name: Prompt Block IP, type: manual_input, next: Block IP}\n  - {name: Block IP, type: connector, connector: fortigate-firewall, operation: block_ip, config: fortigate-lab-1, ip: '{{ vars.input.records[0].destinationIp }}', next: End}\n  - {name: End, type: end}\n",
+      "trigger": {
+       "kind": "on_create",
+       "modules": [
+        "alerts"
+       ],
+       "label": "Runs when an alert is created"
+      },
+      "steps_added": [
+       "Prompt Block IP"
+      ],
+      "steps_removed": [
+       "Old Note"
+      ],
+      "steps_modified": [
+       "Block IP"
+      ],
+      "ops_summary": [
+       {
+        "label": "Start",
+        "step_type": "start"
+       },
+       {
+        "label": "Prompt Block IP",
+        "step_type": "manual_input"
+       },
+       {
+        "label": "Block IP",
+        "step_type": "connector"
+       },
+       {
+        "label": "End",
+        "step_type": "end"
+       }
+      ],
+      "changes": [
+       {
+        "playbook": "Block Malicious IP",
+        "step": "Prompt Block IP",
+        "kind": "added",
+        "type": "manual_input",
+        "before": null,
+        "after": {
+         "type": "manual_input",
+         "next": "Block IP"
+        }
+       },
+       {
+        "playbook": "Block Malicious IP",
+        "step": "Block IP",
+        "kind": "modified",
+        "type": "connector",
+        "changed_fields": [
+         "arguments",
+         "next"
+        ],
+        "before": {
+         "type": "connector",
+         "arguments": {
+          "connector": "fortigate-firewall",
+          "operation": "block_ip",
+          "config": "fortigate-lab-1",
+          "params": {
+           "ip": "{{ vars.input.records[0].sourceIp }}"
+          }
+         },
+         "next": "Old Note"
+        },
+        "after": {
+         "type": "connector",
+         "arguments": {
+          "connector": "fortigate-firewall",
+          "operation": "block_ip",
+          "config": "fortigate-lab-1",
+          "params": {
+           "ip": "{{ vars.input.records[0].destinationIp }}"
+          }
+         },
+         "next": "End"
+        }
+       },
+       {
+        "playbook": "Block Malicious IP",
+        "step": "Old Note",
+        "kind": "removed",
+        "type": "set_variable",
+        "before": {
+         "type": "set_variable",
+         "arguments": {
+          "arg_list": [
+           {
+            "name": "note",
+            "value": "reviewed"
+           }
+          ]
+         },
+         "next": "End"
+        },
+        "after": null
+       }
+      ],
+      "warnings": [
+       {
+        "message": "Jinja reference vars.nope in step 'Block IP'",
+        "plain": "The destination IP may be empty when the alert has none.",
+        "step_name": "Block IP",
+        "in_change": true
+       },
+       {
+        "message": "x",
+        "plain": "Notify Team has no connection selected.",
+        "step_name": "Notify Team",
+        "in_change": false
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

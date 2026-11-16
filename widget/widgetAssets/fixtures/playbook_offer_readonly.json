@@ -1,0 +1,118 @@
+{
+  "scenario": "playbook_offer_readonly",
+  "delays": {
+    "chat_turn": 300,
+    "chat_resume": 300
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "t",
+        "stop_reason": "awaiting_playbook_offer",
+        "transcript": [
+          {
+            "type": "text",
+            "text": "The generated draft has problems I don't want to ship: `siem_search 6` duplicates an earlier 2h search, `siem_search 4` has an unresolved gap, and the host name is hardcoded. I'll write a cleaner version and verify it before offering it."
+          },
+          {
+            "advisory": "Built from the YAML above (not a recorded triage trace) -- review the steps before saving.",
+            "editable_title": true,
+            "final_yaml": "collection: 00 - FSR Studio\nplaybooks:\n- name: Outbound C2 Triage - FortiSIEM IP and Host Pivot\n  trigger: start\n  is_active: true\n  steps:\n  - type: start\n    name: Start\n    next: Set Inputs\n    module: alerts\n  - type: set_variable\n    name: Set Inputs\n    vars:\n      src_ip: '{{ vars.input.records[0].sourceIp }}'\n      dst_ip: '{{ vars.input.records[0].destinationIp }}'\n    next: siem_search src\n  - type: connector\n    name: siem_search src\n    connector: connector-fsr-soc-assistant\n    operation: call_mcp_tool\n    tool: siem_search\n    args:\n      by: ip\n      value: '{{ vars.steps.Set_Inputs.src_ip }}'\n      direction: src\n      window: 30d\n    next: siem_search dst\n  - type: connector\n    name: siem_search dst\n    connector: connector-fsr-soc-assistant\n    operation: call_mcp_tool\n    tool: siem_search\n    args:\n      by: ip\n      value: '{{ vars.steps.Set_Inputs.dst_ip }}'\n      direction: dst\n      window: 30d\n    next: edr_host\n  - type: connector\n    name: edr_host\n    connector: connector-fsr-soc-assistant\n    operation: call_mcp_tool\n    tool: edr_host\n    args:\n      ip: '{{ vars.steps.Set_Inputs.src_ip }}'\n      window: 90d\n    next: End\n  - type: end\n    name: End\n",
+            "has_mutating_action": false,
+            "id": "pbo_outbound_c2_triage",
+            "ops_summary": [
+              {
+                "label": "Start",
+                "step_type": "start"
+              },
+              {
+                "label": "Set Inputs",
+                "step_type": "set_variable"
+              },
+              {
+                "connector": "connector-fsr-soc-assistant",
+                "label": "siem_search src",
+                "operation": "call_mcp_tool",
+                "step_type": "connector"
+              },
+              {
+                "connector": "connector-fsr-soc-assistant",
+                "label": "siem_search dst",
+                "operation": "call_mcp_tool",
+                "step_type": "connector"
+              },
+              {
+                "connector": "connector-fsr-soc-assistant",
+                "label": "edr_host",
+                "operation": "call_mcp_tool",
+                "step_type": "connector"
+              },
+              {
+                "label": "End",
+                "step_type": "end"
+              }
+            ],
+            "preceding_tool_use_id": "toolu_01LkjD3cR5ioYjfpL25XBJTo",
+            "summary": "Pure triage playbook for alerts from FortiSIEM. It reads the alert's sourceIp and destinationIp, runs FortiSIEM searches for the source IP (outbound) and destination IP (inbound) over 30 days, and runs an EDR host lookup on the source IP over 90 days. It makes no changes and does not write a verdict to the record. The investigation so far found no matching FortiSIEM events or EDR host records, so this playbook encodes the checks, not a conclusion. The host name 'smithDesktop' is not an alert field, so the EDR step looks up by IP only.",
+            "title_suggestion": "Outbound C2 Triage - FortiSIEM IP and Host Pivot",
+            "trigger": {
+              "kind": "start",
+              "label": "Runs when an analyst starts it on an alert",
+              "manual": true,
+              "modules": [
+                "alerts"
+              ]
+            },
+            "type": "playbook_offer",
+            "warnings": [
+              {
+                "check": null,
+                "code": "bad_value",
+                "count": 2,
+                "message": "`vars.steps.Set_Inputs.src_ip` rewritten to `vars.src_ip` -- set_variable outputs live at top-level vars, not under the step-output namespace. While the step-ref form also works at runtime (live-verified 8.0.0), the top-level form is the canonical pattern.",
+                "near": null,
+                "path": "playbooks[0].steps[2].arguments",
+                "paths": [
+                  "playbooks[0].steps[4].arguments"
+                ],
+                "severity": "warning",
+                "suggestion": null
+              },
+              {
+                "check": null,
+                "code": "bad_value",
+                "message": "`vars.steps.Set_Inputs.dst_ip` rewritten to `vars.dst_ip` -- set_variable outputs live at top-level vars, not under the step-output namespace. While the step-ref form also works at runtime (live-verified 8.0.0), the top-level form is the canonical pattern.",
+                "near": null,
+                "path": "playbooks[0].steps[3].arguments",
+                "severity": "warning",
+                "suggestion": null
+              },
+              {
+                "check": null,
+                "code": "missing_field",
+                "message": "`button_label:` not set on start -- defaulting to playbook name 'Outbound C2 Triage - FortiSIEM IP and Host Pivot'; set `button_label:` explicitly to override",
+                "near": null,
+                "path": "playbooks[0].steps[0].arguments.button_label",
+                "severity": "warning",
+                "suggestion": null
+              },
+              {
+                "code": "no_effect_step",
+                "message": "this playbook reads or enriches but never writes a record or runs a changing action -- intended for pure triage? If it should record or contain an outcome, its effect step is missing.",
+                "path": null,
+                "severity": "warning"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

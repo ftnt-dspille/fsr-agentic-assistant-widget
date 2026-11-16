@@ -1,0 +1,77 @@
+{
+    "scenario": "approval_run_playbook_old",
+    "regression_pin": "the SUPERSEDED run_playbook approval wire shape -- a current connector cannot emit it, which is the whole point of keeping it",
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "approval_required",
+                "transcript": [
+                    {
+                        "type": "approval_request",
+                        "approval_id": "ap-pb-1",
+                        "tool_use_id": "tu-1",
+                        "tool": "run_playbook",
+                        "tier": 3,
+                        "args_hash": "beefcafe",
+                        "preview": {
+                            "tool": "run_playbook",
+                            "args": {
+                                "playbook": "Add Step from Action to Device",
+                                "follow": true
+                            }
+                        },
+                        "summary": "Run playbook: Add Step from Action to Device · Last run: 2026-07-29 (5d ago) · 0 runs in the last 24h",
+                        "context": {
+                            "last_run": "2026-07-29 (5d ago)",
+                            "last_status": "finished",
+                            "runs_24h": 0,
+                            "runs_total": 21,
+                            "playbook_url": "https://fortisoar.example.com/playbooks/3ebf17b8-3554-4e63-baf9-5b6b3ee2571d"
+                        },
+                        "playbook_url": "https://fortisoar.example.com/playbooks/3ebf17b8-3554-4e63-baf9-5b6b3ee2571d"
+                    },
+                    {
+                        "type": "text",
+                        "text": "I can run that playbook against this device once you approve."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_result",
+                        "call_id": "tu-1",
+                        "name": "run_playbook",
+                        "tool": "run_playbook",
+                        "result": {
+                            "ok": true,
+                            "triggered": true
+                        },
+                        "content": "{\"ok\": true}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "The playbook ran."
+                    }
+                ]
+            }
+        }
+    ]
+}

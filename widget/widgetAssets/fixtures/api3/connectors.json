@@ -1,0 +1,31 @@
+{
+  "status": "Success",
+  "totalItems": 1,
+  "itemsPerPage": 1,
+  "nextPage": null,
+  "previousPage": null,
+  "data": [
+    {
+      "id": 1,
+      "name": "connector-fsr-agentic-assistant",
+      "version": "0.4.12",
+      "label": "FSR Agentic Assistant",
+      "category": ["utilities"],
+      "active": true,
+      "system": false,
+      "description": "Agentic Agentic assistant (triage + playbook build). Local-dev loop runs this connector on the laptop with a local LLM gateway; see LOCAL_DEV.md.",
+      "config_count": 1,
+      "status": "Completed",
+      "configuration": [
+        {
+          "id": 1,
+          "config_id": "local",
+          "name": "fsrpb-live",
+          "default": true,
+          "status": "Completed",
+          "config": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+    "scenario": "max_turns",
+    "delays": {
+        "chat_turn": 60
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "max_turns",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu_1",
+                        "name": "find_connector",
+                        "input": {
+                            "query": "ping host"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu_1",
+                        "content": "Found: utilities/ping_host, network_utilities/icmp_probe"
+                    },
+                    {
+                        "type": "text",
+                        "text": "I started exploring the available connectors to assemble your playbook."
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "tu_2",
+                        "name": "get_op_schema",
+                        "input": {
+                            "connector": "utilities",
+                            "operation": "ping_host"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu_2",
+                        "content": "args: { host: string }"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Reached the turn limit before producing a final playbook. Send another message to continue."
+                    },
+                    {
+                        "type": "usage",
+                        "input_tokens": 4210,
+                        "output_tokens": 1820,
+                        "cost_usd": 0.0412
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,224 @@
+{
+    "scenario": "conditional_block_ip",
+    "delays": {
+        "chat_turn": 1600,
+        "chat_resume": 1200
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-action-card",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "action_card",
+                        "id": "card-block-new",
+                        "connector": "fortigate-firewall",
+                        "operation": "block_ip_new",
+                        "summary": "Block 1.2.3.4 on FortiGate",
+                        "args": {
+                            "method": "Quarantine Based",
+                            "ip_addresses": "[\"1.2.3.4\"]"
+                        },
+                        "editable_fields": [
+                            "method",
+                            "ip_addresses",
+                            "time_to_live",
+                            "duration",
+                            "vdom",
+                            "ip_block_policy",
+                            "ip_type",
+                            "ip_group_name",
+                            "ip",
+                            "ngfw_mode",
+                            "is_new"
+                        ],
+                        "param_schema": [
+                            {
+                                "name": "method",
+                                "title": "Block Method",
+                                "type": "select",
+                                "required": true,
+                                "default": "Quarantine Based",
+                                "options": [
+                                    "Quarantine Based",
+                                    "Policy Based"
+                                ],
+                                "description": "Method to be used for blocking IP addresses using Fortinet FortiGate."
+                            },
+                            {
+                                "name": "ip_addresses",
+                                "title": "IP Addresses",
+                                "type": "text",
+                                "required": true,
+                                "placeholder": "[\"1.1.1.1\", \"2.2.2.2\"]",
+                                "description": "Specify the IP addresses to block in CSV or list format."
+                            },
+                            {
+                                "name": "time_to_live",
+                                "title": "Time to Live",
+                                "type": "select",
+                                "required": true,
+                                "default": "12 Hour",
+                                "options": [
+                                    "1 Hour",
+                                    "6 Hour",
+                                    "12 Hour",
+                                    "1 Day",
+                                    "Never",
+                                    "Custom Time"
+                                ],
+                                "description": "How long the IP stays blocked."
+                            },
+                            {
+                                "name": "duration",
+                                "title": "Time to Live (seconds)",
+                                "type": "integer",
+                                "required": true,
+                                "default": 21600,
+                                "description": "Specify a value, in seconds, for the Time to Live."
+                            },
+                            {
+                                "name": "vdom",
+                                "title": "VDOM",
+                                "type": "text",
+                                "required": false,
+                                "placeholder": "root",
+                                "description": "(Optional) Overrides the configuration VDOM list."
+                            },
+                            {
+                                "name": "ip_block_policy",
+                                "title": "Policy Name",
+                                "type": "text",
+                                "required": true,
+                                "description": "Name of the policy specified on FortiGate for blocking/unblocking IPs."
+                            },
+                            {
+                                "name": "ip_type",
+                                "title": "IP Type",
+                                "type": "select",
+                                "required": true,
+                                "default": "IPv4",
+                                "options": [
+                                    "IPv4",
+                                    "IPv6"
+                                ],
+                                "description": "Type of IP address to block."
+                            },
+                            {
+                                "name": "ip_group_name",
+                                "title": "Address Group Name",
+                                "type": "text",
+                                "required": true,
+                                "description": "The IP address group name configured on FortiGate."
+                            },
+                            {
+                                "name": "ip",
+                                "title": "IP Address",
+                                "type": "text",
+                                "required": true,
+                                "placeholder": "[\"1.1.1.1\", \"2.2.2.2\"]",
+                                "description": "IP addresses to block in CSV or list format."
+                            },
+                            {
+                                "name": "ngfw_mode",
+                                "title": "NGFW Mode",
+                                "type": "select",
+                                "required": false,
+                                "default": "Profile Based",
+                                "options": [
+                                    "Profile Based",
+                                    "Policy Based"
+                                ],
+                                "description": "NGFW mode of the VDOM where the policy lives."
+                            },
+                            {
+                                "name": "is_new",
+                                "title": "Use Members API",
+                                "type": "checkbox",
+                                "required": false,
+                                "default": true,
+                                "visible": false,
+                                "description": "Whether to use the IP address group members API."
+                            }
+                        ],
+                        "visibility": {
+                            "always": [
+                                "method"
+                            ],
+                            "when": {
+                                "method=Quarantine Based": [
+                                    "ip_addresses",
+                                    "time_to_live",
+                                    "vdom"
+                                ],
+                                "time_to_live=Custom Time": [
+                                    "duration"
+                                ],
+                                "method=Policy Based": [
+                                    "ip_block_policy",
+                                    "ip_type",
+                                    "ngfw_mode",
+                                    "is_new",
+                                    "vdom"
+                                ],
+                                "ip_type=IPv4": [
+                                    "ip_group_name",
+                                    "ip"
+                                ],
+                                "ip_type=IPv6": [
+                                    "ip_group_name",
+                                    "ip"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": "FortiGate `block_ip_new` has conditional parameters. Pick a Block Method and fill the revealed fields, then Confirm."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-executed",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "mcp-1",
+                        "name": "execute_action",
+                        "input": {
+                            "connector": "fortigate-firewall",
+                            "operation": "block_ip_new"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "mcp-1",
+                        "content": "{\"status\":\"success\",\"newly_blocked\":[\"1.2.3.4\"]}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Done. 1.2.3.4 is blocked on FortiGate."
+                    },
+                    {
+                        "type": "usage",
+                        "input_tokens": 1820,
+                        "output_tokens": 410,
+                        "cost_usd": 0.012
+                    }
+                ]
+            }
+        }
+    ]
+}

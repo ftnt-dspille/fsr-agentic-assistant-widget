@@ -1,0 +1,15 @@
+node_modules/
+dist/
+test-results/
+.DS_Store
+.idea/
+*.log
+
+# Box-specific fixture overlay (workflow IRIs / execution ids from a live seed).
+# Never commit - see tests/fixtures/playbooks/scenarios.local.json.example.
+tests/fixtures/playbooks/scenarios.local.json
+
+# Compiled from fsrPbRender.ts by the harness build (lib/widgetAssets.js, run by
+# the jest/playwright configs, the dev server and the packager). Build output,
+# never tracked: edit the .ts, not this file.
+widget/widgetAssets/js/fsrPbRender.js

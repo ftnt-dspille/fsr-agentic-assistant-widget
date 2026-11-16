@@ -1,0 +1,93 @@
+{
+    "scenario": "approval_run_playbook_new",
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "approval_required",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-list-1",
+                        "name": "list_module_playbooks",
+                        "input": {
+                            "module": "ztpf_devices",
+                            "include_disabled": false
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-list-1",
+                        "tool": "list_module_playbooks",
+                        "content": "{\"ok\":true,\"module\":\"ztpf_devices\",\"playbooks\":[{\"name\":\"Add Step from Action to Device\",\"uuid\":\"pb-001\"}]}"
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "tu-1",
+                        "name": "run_playbook",
+                        "input": {
+                            "playbook": "Add Step from Action to Device",
+                            "follow": true
+                        }
+                    },
+                    {
+                        "type": "approval_request",
+                        "approval_id": "ap-pb-1",
+                        "tool": "run_playbook",
+                        "tool_use_id": "tu-1",
+                        "summary": "Run playbook: Add Step from Action to Device \u00b7 Last run: 2026-08-10 (21h ago) \u00b7 1 run in the last 24h",
+                        "args": {
+                            "playbook": "Add Step from Action to Device",
+                            "follow": true
+                        },
+                        "tier": 3,
+                        "requires_step_up": false,
+                        "context": {
+                            "playbook_uuid": "9d1a83d1-e9a6-4d6d-986f-173edf129617",
+                            "playbook_url": "/playbooks/9d1a83d1-e9a6-4d6d-986f-173edf129617",
+                            "last_run": "2026-08-10 (21h ago)",
+                            "last_status": "finished",
+                            "runs_24h": 1,
+                            "runs_total": 16
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-1",
+                        "name": "run_playbook",
+                        "tool": "run_playbook",
+                        "result": {
+                            "ok": true,
+                            "triggered": true
+                        },
+                        "content": "{\"ok\": true}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "The playbook ran."
+                    }
+                ]
+            }
+        }
+    ]
+}

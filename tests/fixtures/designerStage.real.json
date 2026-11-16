@@ -1,0 +1,751 @@
+{
+ "_about": "Captured from the REAL FortiSOAR 8.0 playbook designer (live appliance), scrubbed of users/versions. before = designer entity after its init (steps keyed by uuid, route endpoints as step refs -> {$ref: @id}); staged = connector update_playbook(stage=true) workflow for YAML Start -> Note A -> Note B; after = designer entity once the widget emitted designerDetail:entityUpdated. Regenerate: see tests/designerStage.contract.test.js header.",
+ "after": {
+  "@id": "/api/3/workflows/9f533d79-71f5-5251-8113-9040ebf2d714",
+  "@type": "Workflow",
+  "collection": "/api/3/workflow_collections/007822e3-9753-5e24-832f-7aa3d0ff5130",
+  "createDate": 1790640306278.063,
+  "debug": false,
+  "description": "",
+  "groups": {},
+  "id": 4817,
+  "isActive": true,
+  "isEditable": true,
+  "isPrivate": false,
+  "lastModifyDate": 1790640305,
+  "modifyDate": 1790640306278.063,
+  "name": "Stage Target",
+  "parameters": [],
+  "playbookOrigin": {
+   "@id": "/api/3/picklists/15c1e8c9-22bf-4e66-8fbb-0a502d4a4a3f",
+   "@type": "Picklist",
+   "color": "#ed1515",
+   "display": "Custom",
+   "icon": null,
+   "id": 188,
+   "importedBy": [],
+   "itemValue": "Custom",
+   "listName": "/api/3/picklist_names/aa754880-6334-484b-9b49-cfccab09cafb",
+   "orderIndex": 1,
+   "uuid": "15c1e8c9-22bf-4e66-8fbb-0a502d4a4a3f"
+  },
+  "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+  "recordTags": [],
+  "remoteExecutableFlag": 0,
+  "routes": [
+   {
+    "@id": "/api/3/workflow_routes/8fb36c63-75bb-53b3-b7d0-37063d28cf61",
+    "@type": "WorkflowRoute",
+    "group": null,
+    "isExecuted": false,
+    "label": null,
+    "name": "Start -> Note A",
+    "sourceStep": {
+     "$ref": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d"
+    },
+    "targetStep": {
+     "$ref": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099"
+    },
+    "uuid": "8fb36c63-75bb-53b3-b7d0-37063d28cf61"
+   },
+   {
+    "@type": "WorkflowRoute",
+    "group": null,
+    "isExecuted": false,
+    "label": null,
+    "name": "Note A -> Note B",
+    "sourceStep": {
+     "$ref": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099"
+    },
+    "targetStep": {},
+    "uuid": "21f7b997-6de0-5aeb-b9bc-01f0636e80f7"
+   }
+  ],
+  "singleRecordExecution": false,
+  "steps": {
+   "472f188a-7053-5220-aab9-ff28f6bfb96d": {
+    "@id": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+    "@type": "WorkflowStep",
+    "_oldUuid": "472f188a-7053-5220-aab9-ff28f6bfb96d",
+    "arguments": {
+     "__triggerLimit": true,
+     "displayConditions": {
+      "alerts": {
+       "filters": [],
+       "limit": 30,
+       "logic": "AND",
+       "sort": []
+      }
+     },
+     "executeButtonText": "Execute",
+     "inputVariables": [],
+     "noRecordExecution": false,
+     "resources": [
+      "alerts"
+     ],
+     "route": "f7b918ba-b41c-59e3-bdd5-bd66a76db71b",
+     "showToasterMessage": {
+      "messageVisible": true,
+      "visible": false
+     },
+     "singleRecordExecution": true,
+     "step_variables": {
+      "input": {
+       "params": [],
+       "records": "{{vars.input.records}}"
+      }
+     },
+     "title": "Stage Target",
+     "triggerOnReplicate": false,
+     "triggerOnSource": true
+    },
+    "class": "trigger-step",
+    "description": null,
+    "group": null,
+    "htmlEncodedDescription": "null",
+    "htmlEncodedName": "Start",
+    "isEditable": true,
+    "left": "200",
+    "name": "Start",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+     "@type": "WorkflowStepType",
+     "arguments": [],
+     "background": "#e1e815",
+     "collection": "/api/3/step_type_collections/51627f80-3dd5-4260-b86d-cc53a7cece15",
+     "deprecated": false,
+     "description": "Triggered when the user selects record(s) and then selects the playbook from the \"Execute\" list.",
+     "displayName": "Manual",
+     "icon": "icon icon-manual",
+     "id": 29,
+     "index": 110,
+     "name": "cybersponse.action",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/b348f017-9a94-471f-87f8-ce88b6a7ad62",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": null,
+      "collection": "/api/3/step_type_collections/51627f80-3dd5-4260-b86d-cc53a7cece15",
+      "deprecated": false,
+      "description": "Triggered from another playbook using a \"Reference Playbook\" step or from a schedule.",
+      "displayName": "Referenced",
+      "icon": "icon icon-referenced",
+      "id": 30,
+      "index": 140,
+      "name": "cybersponse.abstract_trigger",
+      "parent": {
+       "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+       "@type": "WorkflowStepType",
+       "arguments": {
+        "script": "/wf/workflow/tasks/set_multiple"
+       },
+       "background": "#f7ac20",
+       "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+       "deprecated": false,
+       "description": null,
+       "displayName": "Set Variable",
+       "icon": "icon icon-set-variables",
+       "id": 6,
+       "index": 140,
+       "name": "SetVariable",
+       "parent": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+       "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+       "visible": true,
+       "widget": null
+      },
+      "uuid": "b348f017-9a94-471f-87f8-ce88b6a7ad62",
+      "visible": true,
+      "widget": null
+     },
+     "uuid": "f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+     "visible": true,
+     "widget": null
+    },
+    "top": "120",
+    "uuid": "472f188a-7053-5220-aab9-ff28f6bfb96d"
+   },
+   "6c974390-4d9d-50c1-a9e6-a864b61b71cd": {
+    "@type": "WorkflowStep",
+    "_oldUuid": "6c974390-4d9d-50c1-a9e6-a864b61b71cd",
+    "arguments": {
+     "b": "2"
+    },
+    "description": null,
+    "group": null,
+    "htmlEncodedDescription": "null",
+    "htmlEncodedName": "Note B",
+    "isEditable": true,
+    "left": "200",
+    "name": "Note B",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "@type": "WorkflowStepType",
+     "arguments": {
+      "script": "/wf/workflow/tasks/set_multiple"
+     },
+     "background": "#f7ac20",
+     "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+     "deprecated": false,
+     "description": null,
+     "displayName": "Set Variable",
+     "icon": "icon icon-set-variables",
+     "id": 6,
+     "index": 140,
+     "name": "SetVariable",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": "#ba0017",
+      "collection": "/api/3/step_type_collections/f3561053-417f-4591-8fa4-ca9da8e1da8b",
+      "deprecated": false,
+      "description": null,
+      "displayName": "Run Utility Functions",
+      "icon": "fa fa-file-code-o",
+      "id": 2,
+      "index": 340,
+      "name": "RunScript",
+      "parent": null,
+      "uuid": "ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "visible": false,
+      "widget": null
+     },
+     "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "visible": true,
+     "widget": null
+    },
+    "top": "380",
+    "uuid": "6c974390-4d9d-50c1-a9e6-a864b61b71cd"
+   },
+   "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099": {
+    "@id": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "@type": "WorkflowStep",
+    "_oldUuid": "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "arguments": {
+     "a": "1"
+    },
+    "description": null,
+    "group": null,
+    "htmlEncodedDescription": "null",
+    "htmlEncodedName": "Note A",
+    "isEditable": true,
+    "left": "200",
+    "name": "Note A",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "@type": "WorkflowStepType",
+     "arguments": {
+      "script": "/wf/workflow/tasks/set_multiple"
+     },
+     "background": "#f7ac20",
+     "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+     "deprecated": false,
+     "description": null,
+     "displayName": "Set Variable",
+     "icon": "icon icon-set-variables",
+     "id": 6,
+     "index": 140,
+     "name": "SetVariable",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": "#ba0017",
+      "collection": "/api/3/step_type_collections/f3561053-417f-4591-8fa4-ca9da8e1da8b",
+      "deprecated": false,
+      "description": null,
+      "displayName": "Run Utility Functions",
+      "icon": "fa fa-file-code-o",
+      "id": 2,
+      "index": 340,
+      "name": "RunScript",
+      "parent": null,
+      "uuid": "ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "visible": false,
+      "widget": null
+     },
+     "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "visible": true,
+     "widget": null
+    },
+    "top": "250",
+    "uuid": "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099"
+   }
+  },
+  "synchronous": false,
+  "tag": "",
+  "triggerStep": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+  "uuid": "9f533d79-71f5-5251-8113-9040ebf2d714"
+ },
+ "before": {
+  "@id": "/api/3/workflows/9f533d79-71f5-5251-8113-9040ebf2d714",
+  "collection": "/api/3/workflow_collections/007822e3-9753-5e24-832f-7aa3d0ff5130",
+  "createDate": 1790640306278.063,
+  "debug": false,
+  "description": "",
+  "groups": {},
+  "id": 4817,
+  "isActive": true,
+  "isEditable": true,
+  "isPrivate": false,
+  "lastModifyDate": 1790640305,
+  "modifyDate": 1790640306278.063,
+  "name": "Stage Target",
+  "parameters": [],
+  "playbookOrigin": {
+   "@id": "/api/3/picklists/15c1e8c9-22bf-4e66-8fbb-0a502d4a4a3f",
+   "@type": "Picklist",
+   "color": "#ed1515",
+   "display": "Custom",
+   "icon": null,
+   "id": 188,
+   "importedBy": [],
+   "itemValue": "Custom",
+   "listName": "/api/3/picklist_names/aa754880-6334-484b-9b49-cfccab09cafb",
+   "orderIndex": 1,
+   "uuid": "15c1e8c9-22bf-4e66-8fbb-0a502d4a4a3f"
+  },
+  "priority": {
+   "@id": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+   "@type": "Picklist",
+   "color": null,
+   "display": "High",
+   "icon": null,
+   "id": 112,
+   "importedBy": [],
+   "itemValue": "High",
+   "listName": "/api/3/picklist_names/e104ef72-11b4-4d0c-be0e-e1cf3b87b5f2",
+   "orderIndex": 2,
+   "uuid": "9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00"
+  },
+  "recordTags": [],
+  "remoteExecutableFlag": false,
+  "routes": [
+   {
+    "@id": "/api/3/workflow_routes/8fb36c63-75bb-53b3-b7d0-37063d28cf61",
+    "@type": "WorkflowRoute",
+    "group": null,
+    "isExecuted": false,
+    "label": null,
+    "name": "Start -> Note A",
+    "sourceStep": {
+     "$ref": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d"
+    },
+    "targetStep": {
+     "$ref": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099"
+    },
+    "uuid": "8fb36c63-75bb-53b3-b7d0-37063d28cf61"
+   }
+  ],
+  "singleRecordExecution": false,
+  "steps": {
+   "472f188a-7053-5220-aab9-ff28f6bfb96d": {
+    "@id": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+    "@type": "WorkflowStep",
+    "_oldUuid": "472f188a-7053-5220-aab9-ff28f6bfb96d",
+    "arguments": {
+     "__triggerLimit": true,
+     "displayConditions": {
+      "alerts": {
+       "filters": [],
+       "limit": 30,
+       "logic": "AND",
+       "sort": []
+      }
+     },
+     "executeButtonText": "Execute",
+     "inputVariables": [],
+     "noRecordExecution": false,
+     "resources": [
+      "alerts"
+     ],
+     "route": "f7b918ba-b41c-59e3-bdd5-bd66a76db71b",
+     "showToasterMessage": {
+      "messageVisible": true,
+      "visible": false
+     },
+     "singleRecordExecution": true,
+     "step_variables": {
+      "input": {
+       "params": [],
+       "records": "{{vars.input.records}}"
+      }
+     },
+     "title": "Stage Target",
+     "triggerOnReplicate": false,
+     "triggerOnSource": true
+    },
+    "class": "trigger-step",
+    "description": null,
+    "group": null,
+    "htmlEncodedDescription": "null",
+    "htmlEncodedName": "Start",
+    "isEditable": true,
+    "left": "200",
+    "name": "Start",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+     "@type": "WorkflowStepType",
+     "arguments": [],
+     "background": "#e1e815",
+     "collection": "/api/3/step_type_collections/51627f80-3dd5-4260-b86d-cc53a7cece15",
+     "deprecated": false,
+     "description": "Triggered when the user selects record(s) and then selects the playbook from the \"Execute\" list.",
+     "displayName": "Manual",
+     "icon": "icon icon-manual",
+     "id": 29,
+     "index": 110,
+     "name": "cybersponse.action",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/b348f017-9a94-471f-87f8-ce88b6a7ad62",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": null,
+      "collection": "/api/3/step_type_collections/51627f80-3dd5-4260-b86d-cc53a7cece15",
+      "deprecated": false,
+      "description": "Triggered from another playbook using a \"Reference Playbook\" step or from a schedule.",
+      "displayName": "Referenced",
+      "icon": "icon icon-referenced",
+      "id": 30,
+      "index": 140,
+      "name": "cybersponse.abstract_trigger",
+      "parent": {
+       "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+       "@type": "WorkflowStepType",
+       "arguments": {
+        "script": "/wf/workflow/tasks/set_multiple"
+       },
+       "background": "#f7ac20",
+       "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+       "deprecated": false,
+       "description": null,
+       "displayName": "Set Variable",
+       "icon": "icon icon-set-variables",
+       "id": 6,
+       "index": 140,
+       "name": "SetVariable",
+       "parent": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+       "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+       "visible": true,
+       "widget": null
+      },
+      "uuid": "b348f017-9a94-471f-87f8-ce88b6a7ad62",
+      "visible": true,
+      "widget": null
+     },
+     "uuid": "f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+     "visible": true,
+     "widget": null
+    },
+    "top": "120",
+    "uuid": "472f188a-7053-5220-aab9-ff28f6bfb96d"
+   },
+   "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099": {
+    "@id": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "@type": "WorkflowStep",
+    "_oldUuid": "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "arguments": {
+     "a": "1"
+    },
+    "description": null,
+    "group": null,
+    "htmlEncodedDescription": "null",
+    "htmlEncodedName": "Note A",
+    "isEditable": true,
+    "left": "200",
+    "name": "Note A",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "@type": "WorkflowStepType",
+     "arguments": {
+      "script": "/wf/workflow/tasks/set_multiple"
+     },
+     "background": "#f7ac20",
+     "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+     "deprecated": false,
+     "description": null,
+     "displayName": "Set Variable",
+     "icon": "icon icon-set-variables",
+     "id": 6,
+     "index": 140,
+     "name": "SetVariable",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": "#ba0017",
+      "collection": "/api/3/step_type_collections/f3561053-417f-4591-8fa4-ca9da8e1da8b",
+      "deprecated": false,
+      "description": null,
+      "displayName": "Run Utility Functions",
+      "icon": "fa fa-file-code-o",
+      "id": 2,
+      "index": 340,
+      "name": "RunScript",
+      "parent": null,
+      "uuid": "ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "visible": false,
+      "widget": null
+     },
+     "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "visible": true,
+     "widget": null
+    },
+    "top": "250",
+    "uuid": "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099"
+   }
+  },
+  "synchronous": false,
+  "tag": "",
+  "triggerStep": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+  "uuid": "9f533d79-71f5-5251-8113-9040ebf2d714"
+ },
+ "staged": {
+  "@id": "/api/3/workflows/9f533d79-71f5-5251-8113-9040ebf2d714",
+  "@type": "Workflow",
+  "debug": false,
+  "description": "",
+  "groups": [],
+  "isActive": true,
+  "isEditable": true,
+  "isPrivate": false,
+  "name": "Stage Target",
+  "parameters": [],
+  "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+  "recordTags": [],
+  "remoteExecutableFlag": 0,
+  "routes": [
+   {
+    "@id": "/api/3/workflow_routes/8fb36c63-75bb-53b3-b7d0-37063d28cf61",
+    "@type": "WorkflowRoute",
+    "group": null,
+    "isExecuted": false,
+    "label": null,
+    "name": "Start -> Note A",
+    "sourceStep": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+    "targetStep": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "uuid": "8fb36c63-75bb-53b3-b7d0-37063d28cf61"
+   },
+   {
+    "@type": "WorkflowRoute",
+    "group": null,
+    "isExecuted": false,
+    "label": null,
+    "name": "Note A -> Note B",
+    "sourceStep": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "targetStep": "/api/3/workflow_steps/6c974390-4d9d-50c1-a9e6-a864b61b71cd",
+    "uuid": "21f7b997-6de0-5aeb-b9bc-01f0636e80f7"
+   }
+  ],
+  "singleRecordExecution": false,
+  "steps": [
+   {
+    "@id": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+    "@type": "WorkflowStep",
+    "arguments": {
+     "__triggerLimit": true,
+     "displayConditions": {
+      "alerts": {
+       "filters": [],
+       "limit": 30,
+       "logic": "AND",
+       "sort": []
+      }
+     },
+     "executeButtonText": "Execute",
+     "inputVariables": [],
+     "noRecordExecution": false,
+     "resources": [
+      "alerts"
+     ],
+     "route": "f7b918ba-b41c-59e3-bdd5-bd66a76db71b",
+     "showToasterMessage": {
+      "messageVisible": true,
+      "visible": false
+     },
+     "singleRecordExecution": true,
+     "step_variables": {
+      "input": {
+       "params": [],
+       "records": "{{vars.input.records}}"
+      }
+     },
+     "title": "Stage Target",
+     "triggerOnReplicate": false,
+     "triggerOnSource": true
+    },
+    "description": null,
+    "group": null,
+    "left": "200",
+    "name": "Start",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+     "@type": "WorkflowStepType",
+     "arguments": [],
+     "background": "#e1e815",
+     "collection": "/api/3/step_type_collections/51627f80-3dd5-4260-b86d-cc53a7cece15",
+     "deprecated": false,
+     "description": "Triggered when the user selects record(s) and then selects the playbook from the \"Execute\" list.",
+     "displayName": "Manual",
+     "icon": "icon icon-manual",
+     "id": 29,
+     "index": 110,
+     "name": "cybersponse.action",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/b348f017-9a94-471f-87f8-ce88b6a7ad62",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": null,
+      "collection": "/api/3/step_type_collections/51627f80-3dd5-4260-b86d-cc53a7cece15",
+      "deprecated": false,
+      "description": "Triggered from another playbook using a \"Reference Playbook\" step or from a schedule.",
+      "displayName": "Referenced",
+      "icon": "icon icon-referenced",
+      "id": 30,
+      "index": 140,
+      "name": "cybersponse.abstract_trigger",
+      "parent": {
+       "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+       "@type": "WorkflowStepType",
+       "arguments": {
+        "script": "/wf/workflow/tasks/set_multiple"
+       },
+       "background": "#f7ac20",
+       "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+       "deprecated": false,
+       "description": null,
+       "displayName": "Set Variable",
+       "icon": "icon icon-set-variables",
+       "id": 6,
+       "index": 140,
+       "name": "SetVariable",
+       "parent": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+       "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+       "visible": true,
+       "widget": null
+      },
+      "uuid": "b348f017-9a94-471f-87f8-ce88b6a7ad62",
+      "visible": true,
+      "widget": null
+     },
+     "uuid": "f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+     "visible": true,
+     "widget": null
+    },
+    "top": "120",
+    "uuid": "472f188a-7053-5220-aab9-ff28f6bfb96d"
+   },
+   {
+    "@id": "/api/3/workflow_steps/6d8a3cf7-dc5a-5f57-91bb-948a88ad3099",
+    "@type": "WorkflowStep",
+    "arguments": {
+     "a": "1"
+    },
+    "description": null,
+    "group": null,
+    "left": "200",
+    "name": "Note A",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "@type": "WorkflowStepType",
+     "arguments": {
+      "script": "/wf/workflow/tasks/set_multiple"
+     },
+     "background": "#f7ac20",
+     "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+     "deprecated": false,
+     "description": null,
+     "displayName": "Set Variable",
+     "icon": "icon icon-set-variables",
+     "id": 6,
+     "index": 140,
+     "name": "SetVariable",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": "#ba0017",
+      "collection": "/api/3/step_type_collections/f3561053-417f-4591-8fa4-ca9da8e1da8b",
+      "deprecated": false,
+      "description": null,
+      "displayName": "Run Utility Functions",
+      "icon": "fa fa-file-code-o",
+      "id": 2,
+      "index": 340,
+      "name": "RunScript",
+      "parent": null,
+      "uuid": "ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "visible": false,
+      "widget": null
+     },
+     "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "visible": true,
+     "widget": null
+    },
+    "top": "250",
+    "uuid": "6d8a3cf7-dc5a-5f57-91bb-948a88ad3099"
+   },
+   {
+    "@type": "WorkflowStep",
+    "arguments": {
+     "b": "2"
+    },
+    "description": null,
+    "group": null,
+    "left": "200",
+    "name": "Note B",
+    "status": null,
+    "stepType": {
+     "@id": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "@type": "WorkflowStepType",
+     "arguments": {
+      "script": "/wf/workflow/tasks/set_multiple"
+     },
+     "background": "#f7ac20",
+     "collection": "/api/3/step_type_collections/c04ab14a-669e-4502-92a3-3beef3cf6219",
+     "deprecated": false,
+     "description": null,
+     "displayName": "Set Variable",
+     "icon": "icon icon-set-variables",
+     "id": 6,
+     "index": 140,
+     "name": "SetVariable",
+     "parent": {
+      "@id": "/api/3/workflow_step_types/ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "@type": "WorkflowStepType",
+      "arguments": [],
+      "background": "#ba0017",
+      "collection": "/api/3/step_type_collections/f3561053-417f-4591-8fa4-ca9da8e1da8b",
+      "deprecated": false,
+      "description": null,
+      "displayName": "Run Utility Functions",
+      "icon": "fa fa-file-code-o",
+      "id": 2,
+      "index": 340,
+      "name": "RunScript",
+      "parent": null,
+      "uuid": "ee73e569-2188-43fe-a7f0-1964ba82a4de",
+      "visible": false,
+      "widget": null
+     },
+     "uuid": "04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+     "visible": true,
+     "widget": null
+    },
+    "top": "380",
+    "uuid": "6c974390-4d9d-50c1-a9e6-a864b61b71cd"
+   }
+  ],
+  "synchronous": false,
+  "tag": "",
+  "triggerStep": "/api/3/workflow_steps/472f188a-7053-5220-aab9-ff28f6bfb96d",
+  "uuid": "9f533d79-71f5-5251-8113-9040ebf2d714"
+ }
+}

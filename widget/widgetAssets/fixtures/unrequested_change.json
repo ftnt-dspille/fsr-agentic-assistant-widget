@@ -1,0 +1,62 @@
+{
+    "scenario": "unrequested_change",
+    "_note": "The analyst asked, in prose and in French, only for an EXPLANATION of the open playbook. The agent explains, notices a real defect (Start.next does not match the next step's name, so only Start ever runs), and offers the fix as an enhancement_offer card in the same turn. This is the enhancement-offer card shape the connector emits; cardKeyParity pins its keys to the producer. The approval card that used to sit in front of it (reason: unrequested_change) is gone with the change-affordance gate.",
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-uc-1",
+                "stop_reason": "awaiting_enhancement_offer",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Ce playbook convertit une dur\u00e9e en minutes puis cr\u00e9e une alerte.\n\n1. **Start** -- point d'entr\u00e9e, li\u00e9 au module alerts.\n2. **Convert Time to Minutes** -- divise `duration` par 60.\n3. **Create Alert** -- cr\u00e9e l'alerte avec la valeur convertie.\n\nUn point \u00e0 signaler : le `next` du Start vaut `convert_time_to_minutes`, alors que l'\u00e9tape s'appelle `Convert Time to Minutes`. Le routage se fait par nom, donc seul le Start s'ex\u00e9cute -- les deux \u00e9tapes suivantes ne sont jamais atteintes."
+                    },
+                    {
+                        "type": "text",
+                        "text": "Voici la correction propos\u00e9e."
+                    },
+                    {
+                        "type": "enhancement_offer",
+                        "id": "enh-uc-1",
+                        "summary": "Point Start.next at the step's real name so the whole playbook runs.",
+                        "verified_id": "ver-uc-1",
+                        "final_yaml": "playbooks:\n  - name: ConvertTimeAndCreateAlert\n    steps:\n      - name: Start\n        type: start\n        module: alerts\n        next: Convert Time to Minutes\n",
+                        "steps_added": [],
+                        "steps_removed": [],
+                        "steps_modified": [
+                            "Start"
+                        ],
+                        "diff_summary": {
+                            "added": [],
+                            "removed": [],
+                            "modified": [
+                                "Start"
+                            ]
+                        },
+                        "ops_summary": [
+                            {
+                                "label": "Start",
+                                "step_type": "start"
+                            },
+                            {
+                                "label": "Convert Time to Minutes",
+                                "step_type": "code_snippet"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

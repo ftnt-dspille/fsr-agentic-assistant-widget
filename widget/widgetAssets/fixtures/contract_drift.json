@@ -1,0 +1,20 @@
+{
+    "scenario": "contract_drift",
+    "contract_version": "3.0.0",
+    "_doc": "Connector reports a MAJOR contract version ahead of the widget (3.x vs 2.x). Non-strict: widget shows a contract-drift banner but still renders the turn. Strict (?contract=strict or config.contractStrict): widget halts the turn in error state.",
+    "delays": { "chat_turn": 50 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-drift",
+                "contract_version": "3.0.0",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Hello from a newer connector." }
+                ]
+            }
+        }
+    ]
+}

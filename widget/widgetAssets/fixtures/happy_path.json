@@ -1,0 +1,108 @@
+{
+  "scenario": "happy_path",
+  "delays": {
+    "chat_turn": 80,
+    "validate_yaml": 30,
+    "compile_yaml": 40,
+    "push_playbook": 60
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "mock-turn-1",
+        "stop_reason": "end_turn",
+        "transcript": [
+          {
+            "type": "text",
+            "text": "Here's a starter playbook that raises an alert. It's a real, compilable FortiSOAR playbook \u2014 click **Create Playbook** to push it live:\n\n```yaml\ncollection: FSRPB Demo Record Create\ndescription: Single-step playbook that creates an alert.\nvisible: true\n\nplaybooks:\n  - name: FSRPB Create Alert\n    is_active: true\n    parameters: [alert_name]\n    steps:\n      - name: trigger\n        type: start\n        next: Create alert\n\n      - name: Create alert\n        type: create_record\n        arguments:\n          module: alerts\n          operation: Replace\n          resource:\n            name: \"{{ vars.input.params.alert_name }}\"\n            severity: High\n            description: \"fsrpb_demo marker\"\n          step_variables: []\n```\n\nLet me know if you want me to refine any step."
+          },
+          {"type": "playbook_offer", "id": "offer-happy_path-1", "summary": "Playbook drafted and verified.", "final_yaml": "collection: FSRPB Demo Record Create\ndescription: Single-step playbook that creates an alert.\nvisible: true\n\nplaybooks:\n  - name: FSRPB Create Alert\n    is_active: true\n    parameters: [alert_name]\n    steps:\n      - name: trigger\n        type: start\n        next: Create alert\n\n      - name: Create alert\n        type: create_record\n        arguments:\n          module: alerts\n          operation: Replace\n          resource:\n            name: \"{{ vars.input.params.alert_name }}\"\n            severity: High\n            description: \"fsrpb_demo marker\"\n          step_variables: []\n"},
+          {
+            "type": "usage",
+            "input_tokens": 1240,
+            "output_tokens": 312,
+            "cost_usd": 0.0094
+          }
+        ]
+      }
+    },
+    {
+      "action": "validate_yaml",
+      "response": {
+        "ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "action": "compile_yaml",
+      "response": {
+        "ok": true,
+        "workflow_json": {
+          "name": "Ping Host And Alert",
+          "uuid": "mock-uuid-0001",
+          "steps": [
+            {
+              "id": "ping",
+              "type": "connector"
+            },
+            {
+              "id": "alert_if_down",
+              "type": "connector"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "push_playbook",
+      "response": {
+        "ok": true,
+        "workflow_iri": "/api/3/workflows/mock-uuid-0001"
+      }
+    },
+    {
+      "action": "list_agent_tools",
+      "response": {
+        "ok": true,
+        "module": "",
+        "persona_applied": false,
+        "surfaces": [
+          {
+            "intent": "triage",
+            "count": 3,
+            "tools": [
+              {
+                "name": "get_record",
+                "tier": 1,
+                "confirm_mode": "auto",
+                "source": "safe",
+                "description": "Fetch one record from a module by id."
+              },
+              {
+                "name": "search_module_records",
+                "tier": 1,
+                "confirm_mode": "auto",
+                "source": "safe",
+                "description": "Search records in a module."
+              },
+              {
+                "name": "create_record",
+                "tier": 3,
+                "confirm_mode": "approve",
+                "source": "safe",
+                "description": "Create a record (approval-gated write)."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+    "scenario": "info_cards",
+    "delays": { "chat_turn": 80 },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": { "turns": [] }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-info-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "activity", "phase": "normalize", "message": "Normalizing record" },
+                    { "type": "activity", "phase": "classify", "message": "Classified as C2/exfil" },
+                    { "type": "activity", "phase": "ground", "message": "Grounded on 2 IP(s), 1 host(s), 3 driving event(s)" },
+                    { "type": "text", "text": "I checked the connectors before running and enriched the IOC you mentioned. Here's what I found:" },
+                    {
+                        "type": "status_card",
+                        "id": "status-splunk",
+                        "variant": "connector_health",
+                        "severity": "error",
+                        "title": "Splunk connector unavailable",
+                        "summary": "Configured but the healthcheck is failing, so I held off on the search.",
+                        "details": [
+                            { "label": "Connector", "value": "splunk" },
+                            { "label": "Status", "value": "Disconnected" },
+                            { "label": "Message", "value": "connection refused" }
+                        ],
+                        "actions": [ { "label": "Fix under Settings → Connectors" } ]
+                    },
+                    {
+                        "type": "status_card",
+                        "id": "status-fortigate",
+                        "variant": "connector_health",
+                        "severity": "ok",
+                        "title": "FortiGate connector healthy",
+                        "summary": "Active configuration, healthcheck passing.",
+                        "details": [ { "label": "Connector", "value": "fortigate" }, { "label": "Status", "value": "Connected" } ]
+                    },
+                    {
+                        "type": "info_card",
+                        "id": "ioc-1234",
+                        "variant": "ioc_enrichment",
+                        "severity": "error",
+                        "title": "IOC: 1.2.3.4 -- Malicious",
+                        "blocks": [
+                            { "kind": "score", "label": "Risk score", "value": 87, "max": 100, "severity": "error" },
+                            { "kind": "tags", "tags": [ { "label": "C2", "severity": "error" }, { "label": "Scanner", "severity": "warning" }, { "label": "Tor exit", "severity": "info" } ] },
+                            { "kind": "rows", "rows": [ { "label": "Type", "value": "ipv4" }, { "label": "ASN", "value": "AS12345 ExampleHosting" }, { "label": "First seen", "value": "2026-03-02" }, { "label": "Verdict", "value": "malicious", "severity": "error" } ] },
+                            { "kind": "table", "columns": [ "Source", "Verdict", "Score" ], "rows": [ [ "VirusTotal", "malicious", "58/72" ], [ "AbuseIPDB", "abusive", "100%" ], [ "GreyNoise", "malicious", "--" ] ] }
+                        ]
+                    },
+                    {
+                        "type": "info_card",
+                        "id": "pushed-offer1",
+                        "variant": "playbook_pushed",
+                        "severity": "ok",
+                        "title": "Saved “Intrusion Traffic Triage”",
+                        "url": "/playbooks/wf-uuid-1",
+                        "blocks": [
+                            { "kind": "text", "text": "Saved this investigation as a re-runnable playbook (4 steps)." },
+                            { "kind": "link", "label": "Open in Playbook Designer", "url": "/playbooks/wf-uuid-1" }
+                        ]
+                    },
+                    { "type": "usage", "input_tokens": 980, "output_tokens": 210, "cost_usd": 0.0061 }
+                ]
+            }
+        }
+    ]
+}

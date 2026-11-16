@@ -1,0 +1,83 @@
+{
+  "scenario": "playbook_offer_traced",
+  "delays": {
+    "chat_turn": 300,
+    "chat_resume": 300
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "t",
+        "stop_reason": "awaiting_playbook_offer",
+        "transcript": [
+          {
+            "type": "text",
+            "text": "I drafted this from the investigation you just ran."
+          },
+          {
+            "draft_steps": [
+              {
+                "node": "siem_search",
+                "step_type": "connector",
+                "verified": true
+              },
+              {
+                "node": "edr_host",
+                "step_type": "connector",
+                "verified": true
+              },
+              {
+                "node": "Block Ip New",
+                "step_type": "connector",
+                "verified": true
+              }
+            ],
+            "editable_title": true,
+            "has_mutating_action": true,
+            "id": "offer-playbook-excessive-end-user-mail-investigation-block",
+            "ops_summary": [
+              {
+                "connector": "connector-fsr-agentic-assistant",
+                "label": "siem_search",
+                "operation": "call_mcp_tool",
+                "skill_id": "run_connector_action",
+                "step_type": "connector",
+                "verified": true,
+                "wiring_label": "uses fixed values"
+              },
+              {
+                "connector": "connector-fsr-agentic-assistant",
+                "label": "edr_host",
+                "operation": "call_mcp_tool",
+                "skill_id": "run_connector_action",
+                "step_type": "connector",
+                "verified": true,
+                "wiring_label": "uses fixed values"
+              },
+              {
+                "connector": "fortigate-firewall",
+                "label": "Block Ip New",
+                "operation": "block_ip_new",
+                "skill_id": "run_connector_action",
+                "step_type": "connector",
+                "verified": true,
+                "wiring_label": "uses ip_addresses from edr_host"
+              }
+            ],
+            "preceding_tool_use_id": "call_7f1702fecfb0_1_0",
+            "summary": "Automates triage for Excessive End User Mail alerts: investigates in SIEM, checks FortiEDR, and (with approval) blocks the source IP on FortiGate if present. This matches the sequence you just performed.",
+            "title_suggestion": "Automated Excessive End User Mail Investigation & Block",
+            "type": "playbook_offer"
+          }
+        ]
+      }
+    }
+  ]
+}

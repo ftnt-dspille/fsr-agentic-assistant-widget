@@ -1,0 +1,32 @@
+{
+    "scenario": "persona_ztpf_author",
+    "contract_version": "2.1.0",
+    "default_session_id": "demo-persona-ztpf-001",
+    "_doc": "Module-scoped assistant persona for ztpf_templates authoring. The widget's resolvePersona() resolves this persona in mock mode via the resolve_persona action; its ui block reframes the opener away from SOC triage -- greeting 'Authoring …', an authoring quick-action deck, and a template-oriented composer placeholder. No SOC 'Investigate this case' deck and no 'Build playbook' handoff appear. Exercises the persona-aware framing end-to-end with no live Key Store or connector.",
+    "delays": { "chat_turn": 400 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+
+        {
+            "action": "resolve_persona",
+            "response": {
+                "found": true,
+                "label": "ZTPF Template Author",
+                "ui": {
+                    "greeting": "Authoring {module}: {name}",
+                    "subtitle": "Ask me to render, lint, or edit this template -- no SOC triage here.",
+                    "placeholder": "Ask me to render, check, or edit this template…",
+                    "pullLabel": "This template",
+                    "pullHint": "Pull in this template's fields",
+                    "buildHint": "Describe the template you want and I'll draft the script.",
+                    "quickActions": [
+                        { "key": "explain",     "label": "Explain this template", "sub": "What it provisions + its inputs",  "prompt": "Explain what this ZTPF template's script provisions and which inputs it consumes, step by step." },
+                        { "key": "test_render", "label": "Test render",           "sub": "Render against its example vars",  "prompt": "Render this template against its example vars and show the output plus any errors." },
+                        { "key": "lint",        "label": "Check the Jinja",       "sub": "Syntax errors + unknown filters",  "prompt": "Check this template's Jinja for syntax errors and unknown filters, and explain how to fix anything you find." },
+                        { "key": "edit_body",   "label": "Edit the template",     "sub": "Describe the change; I'll draft + save", "prompt": "I want to change this template's body. Ask me what should change, draft the new script, test-render it, then save it." }
+                    ]
+                }
+            }
+        }
+    ]
+}

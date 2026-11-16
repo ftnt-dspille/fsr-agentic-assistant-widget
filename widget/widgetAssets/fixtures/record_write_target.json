@@ -1,0 +1,95 @@
+{
+    "scenario": "record_write_target",
+    "_comment": "Record-write approval cards (#78/#120). Two cards in one turn: a write aimed at the record the analyst has open (context_match 'same') and one aimed somewhere else ('different'). The pair is the point -- a card that renders the same thing for both is not gating anything. Frame order follows the wire: the connector acts first and narrates after.",
+    "delays": {
+        "chat_turn": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-rw-1",
+                        "name": "get_record",
+                        "input": {
+                            "module": "alerts",
+                            "uuid": "d39ecc9a-2968-42d5-948d-ce96fd76b227"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-rw-1",
+                        "name": "get_record",
+                        "content": {
+                            "ok": true,
+                            "name": "Suspicious outbound beacon",
+                            "severity": "Low"
+                        }
+                    },
+                    {
+                        "type": "action_card",
+                        "id": "rw-same",
+                        "preceding_tool_use_id": "tu-rw-1",
+                        "connector": "fortinet-fsr-agentic-assistant",
+                        "operation": "update_record",
+                        "summary": "Update alerts/d39ecc9a",
+                        "args": {
+                            "severity": "Critical"
+                        },
+                        "editable_fields": ["severity"],
+                        "target": {
+                            "module": "alerts",
+                            "uuid": "d39ecc9a-2968-42d5-948d-ce96fd76b227",
+                            "name": "Suspicious outbound beacon"
+                        },
+                        "changes": [
+                            {
+                                "field": "severity",
+                                "before": "Low",
+                                "after": "Critical"
+                            }
+                        ],
+                        "context_match": "same"
+                    },
+                    {
+                        "type": "action_card",
+                        "id": "rw-different",
+                        "connector": "fortinet-fsr-agentic-assistant",
+                        "operation": "update_record",
+                        "summary": "Update alerts/11111111",
+                        "args": {
+                            "status": "Closed"
+                        },
+                        "editable_fields": ["status"],
+                        "target": {
+                            "module": "alerts",
+                            "uuid": "11111111-2222-3333-4444-555555555555"
+                        },
+                        "changes": [
+                            {
+                                "field": "status",
+                                "before": "Open",
+                                "after": "Closed"
+                            }
+                        ],
+                        "context_match": "different"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Two writes are queued for your approval. The second one targets a different alert than the one you have open."
+                    }
+                ]
+            }
+        }
+    ]
+}

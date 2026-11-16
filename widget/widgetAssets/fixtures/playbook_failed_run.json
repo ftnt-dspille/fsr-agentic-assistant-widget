@@ -1,0 +1,55 @@
+{
+  "scenario": "playbook_failed_run",
+  "contract_version": "2.1.0",
+  "default_session_id": "mock-session-failed-run",
+  "_doc": "Recorded shape of a failed run of a bottled playbook: a template input came out empty, so the failing step needs a playbook change.",
+  "delays": {
+    "chat_turn": 40
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "mock-turn-failed-run",
+        "contract_version": "2.1.0",
+        "stop_reason": "end_turn",
+        "transcript": [
+          {
+            "type": "tool_use",
+            "id": "tu-why-1",
+            "name": "why_did_playbook_fail",
+            "input": {
+              "playbook_or_id": "Block Malicious IP on FortiGate"
+            }
+          },
+          {
+            "type": "tool_result",
+            "tool_use_id": "tu-why-1",
+            "tool": "why_did_playbook_fail",
+            "content": "{\n  \"ok\": false,\n  \"pb_execution\": \"3f1c2a9e-7b1d-4c2e-9a0f-1d2c3b4a5e6f\",\n  \"run_status\": \"failed\",\n  \"playbook_name\": \"Block Malicious IP on FortiGate\",\n  \"step_diagnostics\": [\n    {\n      \"playbook\": \"Block Malicious IP on FortiGate\",\n      \"step\": \"Set Inputs\",\n      \"arg_path\": \"vars.dst_ip\",\n      \"template\": \"{{ vars.input.records[0].destinationIp }}\",\n      \"rendered\": \"\",\n      \"ok\": false,\n      \"code\": \"empty_render\"\n    },\n    {\n      \"playbook\": \"Block Malicious IP on FortiGate\",\n      \"step\": \"Block IP on FortiGate\",\n      \"arg_path\": \"ip_addresses\",\n      \"template\": \"{{ vars.steps.Set_Inputs.dst_ip }}\",\n      \"ok\": false,\n      \"code\": \"render_error\",\n      \"message\": \"'dict object' has no attribute 'dst_ip'\"\n    },\n    {\n      \"playbook\": \"Block Malicious IP on FortiGate\",\n      \"step\": \"Check Containment Target\",\n      \"arg_path\": \"when\",\n      \"template\": \"{{ vars.input.records[0].destinationIp | length > 0 }}\",\n      \"rendered\": \"True\",\n      \"ok\": true,\n      \"code\": \"ok\"\n    }\n  ],\n  \"available_step_keys\": [\n    \"Check_Containment_Target\",\n    \"Set_Inputs\"\n  ],\n  \"summary\": {\n    \"total_templates\": 3,\n    \"render_failures\": 2,\n    \"referenced_step_keys\": [\n      \"Set_Inputs\"\n    ]\n  },\n  \"hints\": [\n    \"step reference `vars.steps.Set_Inputs` has an empty output for this run\"\n  ]\n}"
+          },
+          {
+            "type": "text",
+            "text": "Checking the last failed run of this playbook."
+          },
+          {
+            "type": "text",
+            "text": "The last run failed because an input for the step Set Inputs came out empty."
+          }
+        ],
+        "usage": {
+          "input_tokens": 5120,
+          "output_tokens": 840,
+          "cost_usd": 0.0288,
+          "model": "claude-sonnet-4-5"
+        }
+      }
+    }
+  ]
+}

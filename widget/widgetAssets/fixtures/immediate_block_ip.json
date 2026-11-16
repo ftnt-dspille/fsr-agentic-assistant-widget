@@ -1,0 +1,103 @@
+{
+    "scenario": "immediate_block_ip",
+    "delays": { "chat_turn": 1600, "chat_resume": 1200 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-opener",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "I read the FortiSOC summary. Outbound C2 to **1.2.3.4** from host **HR-WS-04**. What would you like to do?" },
+                    {
+                        "type": "choice_card",
+                        "id": "intent",
+                        "prompt": "Pick an approach:",
+                        "options": [
+                            { "label": "Take immediate action",  "value": "immediate", "hint": "One-shot block/quarantine via MCP execute" },
+                            { "label": "Build a repeatable playbook", "value": "playbook", "hint": "Hunt + contain workflow you can re-run" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-action-kind",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "OK, immediate action. What do you want to do?" },
+                    {
+                        "type": "choice_card",
+                        "id": "action_kind",
+                        "prompt": "Choose an action:",
+                        "options": [
+                            { "label": "Block IP at edge",     "value": "block_ip" },
+                            { "label": "Quarantine host",      "value": "quarantine" },
+                            { "label": "Disable user account", "value": "disable_user" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-pick-connector",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "Which configured connector should run the block?" },
+                    {
+                        "type": "choice_card",
+                        "id": "connector_pick",
+                        "prompt": "Connectors that can block an IP (configured in this tenant):",
+                        "options": [
+                            { "label": "FortiGate (edge-fw-1)", "value": "fortigate" },
+                            { "label": "FortiManager (mgr-1)",  "value": "fortimanager" },
+                            { "label": "Palo Alto (pa-vm-2)",   "value": "panw" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-action-card",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    { "type": "text", "text": "Here's what I'll run. Edit if you need to, then Confirm." },
+                    {
+                        "type": "action_card",
+                        "id": "card-block-ip-1",
+                        "connector": "fortinet-fortigate",
+                        "operation": "block_ip",
+                        "summary": "FortiGate: block 1.2.3.4 in block-list policy",
+                        "args": {
+                            "ip": "1.2.3.4",
+                            "policy": "block-list",
+                            "comment": "Auto: SOC AI summary, alert #4821",
+                            "duration_minutes": 1440
+                        },
+                        "editable_fields": ["ip", "policy", "comment", "duration_minutes"]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-executed",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "tool_use",    "id": "mcp-1", "name": "execute_action", "input": { "connector": "fortinet-fortigate", "operation": "block_ip", "args": { "ip": "1.2.3.4", "policy": "block-list" } } },
+                    { "type": "tool_result", "tool_use_id": "mcp-1", "content": "{\"status\":\"success\",\"policy_id\":\"BL-7741\",\"applied_to\":\"edge-fw-1\"}" },
+                    { "type": "text", "text": "Done. 1.2.3.4 is in the block list on edge-fw-1 (policy BL-7741). Audit entry recorded in FortiSOAR." },
+                    { "type": "usage", "input_tokens": 2410, "output_tokens": 540, "cost_usd": 0.0182 }
+                ]
+            }
+        }
+    ]
+}

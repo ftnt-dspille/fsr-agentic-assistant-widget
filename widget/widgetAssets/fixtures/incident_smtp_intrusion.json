@@ -1,0 +1,155 @@
+{
+    "scenario": "incident_smtp_intrusion",
+    "contract_version": "2.1.0",
+    "default_session_id": "demo-smtp-intrusion-001",
+    "_doc": "Incident-triage intent. Matches the sample SMTP-intrusion summary in FSRPlaybookYaml/docs/. The widget seeds the record summary locally; the first chat_turn runs two intel hops (search_assets, fortisiem.run_query) then surfaces an action_card to block the C2 IP at the edge. Approve → executes → end_turn summary. Reject → logged, no action.",
+    "delays": {
+        "chat_turn": 1500,
+        "chat_resume": 1200
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-smtp-intel",
+                "contract_version": "2.1.0",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "intel-1",
+                        "name": "search_assets",
+                        "input": {
+                            "hostname": "mail-relay-02"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "intel-1",
+                        "content": "{\"status\":\"success\",\"asset\":{\"hostname\":\"mail-relay-02\",\"ip\":\"198.51.100.6\",\"owner\":\"Messaging\",\"criticality\":\"high\",\"exposed\":true}}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Reviewing the SMTP intrusion on **mail-relay-02**. Let me pull the asset record and correlate the outbound sessions before recommending containment."
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "intel-2",
+                        "name": "fortisiem.run_query",
+                        "input": {
+                            "query": "dstip=185.220.101.47 AND srcip=198.51.100.6",
+                            "window_hours": 24
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "intel-2",
+                        "content": "{\"status\":\"success\",\"sessions\":38,\"bytes_out\":914233,\"first_seen\":\"2026-05-29T01:14:22Z\",\"last_seen\":\"2026-05-29T03:02:51Z\",\"verdict\":\"beaconing\"}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Confirmed: **mail-relay-02** (198.51.100.6) is beaconing to **185.220.101.47** -- 38 sessions, ~0.9 MB exfil over ~2h. This is a known Tor exit / C2. Recommend blocking the C2 IP at the perimeter now. Review the args and confirm."
+                    },
+                    {
+                        "type": "action_card",
+                        "id": "card-block-c2",
+                        "connector": "fortinet-fortigate",
+                        "operation": "add_to_address_group",
+                        "summary": "Block 185.220.101.47 in soc-blocklist on edge-fw-1",
+                        "args": {
+                            "ip": "185.220.101.47",
+                            "group": "soc-blocklist",
+                            "vdom": "root",
+                            "comment": "Auto: SOC AI triage, incident SMTP intrusion (mail-relay-02 → C2)"
+                        },
+                        "editable_fields": [
+                            "ip",
+                            "group",
+                            "vdom",
+                            "comment"
+                        ],
+                        "required_fields": [
+                            "ip",
+                            "group"
+                        ]
+                    }
+                ],
+                "usage": {
+                    "input_tokens": 3120,
+                    "output_tokens": 480,
+                    "cost_usd": 0.0151,
+                    "model": "claude-sonnet-4-5"
+                }
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": {
+                "decision": "approve",
+                "card_id": "card-block-c2"
+            },
+            "response": {
+                "turn_id": "t-smtp-executed",
+                "contract_version": "2.1.0",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "exec-1",
+                        "name": "execute_action",
+                        "input": {
+                            "connector": "fortinet-fortigate",
+                            "config_id": "edge-fw-1",
+                            "operation": "add_to_address_group",
+                            "args": {
+                                "ip": "185.220.101.47",
+                                "group": "soc-blocklist",
+                                "vdom": "root"
+                            }
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "exec-1",
+                        "content": "{\"status\":\"success\",\"object_id\":\"FW-OBJ-7741\",\"applied_to\":\"edge-fw-1\",\"vdom\":\"root\"}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Done. **185.220.101.47** added to `soc-blocklist` on **edge-fw-1** (object `FW-OBJ-7741`). Outbound C2 from mail-relay-02 is now dropped at the perimeter. I've recorded the action against this incident.\n\nNext steps you may want: isolate mail-relay-02 in FortiEDR, rotate the relay's credentials, and sweep other hosts for the same destination."
+                    },
+                    {
+                        "type": "usage",
+                        "input_tokens": 3680,
+                        "output_tokens": 720,
+                        "cost_usd": 0.0204,
+                        "model": "claude-sonnet-4-5"
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": {
+                "decision": "reject",
+                "card_id": "card-block-c2"
+            },
+            "response": {
+                "turn_id": "t-smtp-rejected",
+                "contract_version": "2.1.0",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Cancelled -- no block applied. The decision was logged against the incident for audit. Let me know if you'd like a different containment path."
+                    }
+                ]
+            }
+        }
+    ]
+}

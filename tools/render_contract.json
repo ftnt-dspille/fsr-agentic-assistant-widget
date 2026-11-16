@@ -1,0 +1,12 @@
+{
+  "$comment": "Render-model vocabulary shared by tools/render_check.cjs and tests/render.pipeline.test.ts. Edit it here; both read it, so neither can drift from the other. Add a render event type here when fsrPbRender.ts starts emitting it.",
+  "renderEventTypes": [
+    "tool_call", "approval_request", "choice_card",
+    "action_card", "manual_input", "info_card", "error", "capability_gap",
+    "playbook_offer", "enhancement_offer", "verdict_card",
+    "activity", "troubleshoot_card"
+  ],
+  "blockKinds": ["rows", "table", "tags", "score", "text", "link"],
+  "severities": ["ok", "warning", "error", "info"],
+  "toolStatuses": ["pending", "success", "error", "ok", "unknown", "guard", "awaiting"]
+}

@@ -1,0 +1,86 @@
+{
+  "scenario": "playbook_offer_block_ip",
+  "delays": {
+    "chat_turn": 300,
+    "chat_resume": 300
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "t",
+        "stop_reason": "awaiting_playbook_offer",
+        "transcript": [
+          {
+            "type": "text",
+            "text": "Playbook verified. Offering it now."
+          },
+          {
+            "advisory": "Built from the YAML above (not a recorded triage trace) -- review the steps before saving.",
+            "editable_title": true,
+            "final_yaml": "collection: 00 - FSR Studio\nplaybooks:\n- name: Block Malicious IP on FortiGate\n  trigger: start\n  is_active: true\n  steps:\n  - type: start\n    name: Start\n    next: Containment Target Present\n    module: alerts\n  - type: decision\n    name: Containment Target Present\n    conditions:\n    - display: target present\n      when: '{{ (((vars.input.records[0].destinationIp) | default('''', true)) | length) > 0 }}'\n      next: Confirm Containment\n    default: Containment Target Empty\n  - type: manual_input\n    name: Confirm Containment\n    message: Run containment `block_ip_new` via `fortigate-firewall`? Choose Stop to skip it and continue.\n    options:\n    - display: Confirm\n      next: Block IP on FortiGate\n    - display: Stop\n      next: Containment Skipped\n  - type: connector\n    name: Block IP on FortiGate\n    connector: fortigate-firewall\n    operation: block_ip_new\n    method: Quarantine Based\n    ip_addresses: '{{ vars.input.records[0].destinationIp }}'\n    time_to_live: 12 Hour\n  - type: set_variable\n    name: Containment Target Empty\n    vars:\n      containment_skipped: true\n      containment_skipped_reason: empty_target\n  - type: set_variable\n    name: Containment Skipped\n    vars:\n      containment_skipped: true\n",
+            "has_mutating_action": false,
+            "id": "offer_block_malicious_ip_fortigate",
+            "ops_summary": [
+              {
+                "label": "Start",
+                "step_type": "start"
+              },
+              {
+                "label": "Containment Target Present",
+                "step_type": "decision"
+              },
+              {
+                "label": "Confirm Containment",
+                "step_type": "manual_input"
+              },
+              {
+                "connector": "fortigate-firewall",
+                "label": "Block IP on FortiGate",
+                "operation": "block_ip_new",
+                "step_type": "connector"
+              },
+              {
+                "label": "Containment Target Empty",
+                "step_type": "set_variable"
+              },
+              {
+                "label": "Containment Skipped",
+                "step_type": "set_variable"
+              }
+            ],
+            "preceding_tool_use_id": "toolu_01VT9WPspb3oXG9HycN2CBn7",
+            "summary": "Blocks the alert's destination IP on FortiGate (Quarantine Based banned-IP list, 12-hour TTL). Runs only if the alert has a destination IP and the analyst confirms the containment step. Assumes destinationIp is the malicious indicator; it is the outbound peer, not the compromised source host.",
+            "title_suggestion": "Block Malicious IP on FortiGate",
+            "trigger": {
+              "kind": "start",
+              "label": "Runs when an analyst starts it on an alert",
+              "manual": true,
+              "modules": [
+                "alerts"
+              ]
+            },
+            "type": "playbook_offer",
+            "warnings": [
+              {
+                "check": null,
+                "code": "missing_field",
+                "message": "`button_label:` not set on start -- defaulting to playbook name 'Block Malicious IP on FortiGate'; set `button_label:` explicitly to override",
+                "near": null,
+                "path": "playbooks[0].steps[0].arguments.button_label",
+                "severity": "warning",
+                "suggestion": null
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

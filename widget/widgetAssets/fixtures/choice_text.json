@@ -1,0 +1,38 @@
+{
+    "scenario": "choice_text",
+    "delays": { "chat_turn": 60, "chat_resume": 60 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-choice-text",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    {
+                        "type": "choice_card",
+                        "id": "create_playbook_scope",
+                        "prompt": "What should the new playbook start from, and what should it do?",
+                        "multi": false,
+                        "min_select": 1,
+                        "max_select": null,
+                        "allow_text": true,
+                        "options": [
+                            { "label": "Start from an alert", "value": "alert_start" },
+                            { "label": "Start from an incident", "value": "incident_start" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "value": "enrich alert IPs on VirusTotal" },
+            "response": {
+                "turn_id": "t-choice-text-typed",
+                "stop_reason": "end_turn",
+                "transcript": [ { "type": "text", "text": "Got it -- an alert-triggered VirusTotal enrichment." } ]
+            }
+        }
+    ]
+}

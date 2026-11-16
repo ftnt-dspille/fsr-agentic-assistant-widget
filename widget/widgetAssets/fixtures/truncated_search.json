@@ -1,0 +1,65 @@
+{
+ "scenario": "truncated_search",
+ "delays": {
+  "chat_turn": 60
+ },
+ "responses": [
+  {
+   "action": "chat_history",
+   "response": {
+    "turns": []
+   }
+  },
+  {
+   "action": "chat_turn",
+   "response": {
+    "turn_id": "mock-turn-1",
+    "stop_reason": "end_turn",
+    "transcript": [
+     {
+      "type": "tool_use",
+      "id": "tu_1",
+      "name": "search_module_records",
+      "input": {
+       "module": "alerts",
+       "q": "203.0.113.9"
+      }
+     },
+     {
+      "type": "tool_result",
+      "tool_use_id": "tu_1",
+      "tool": "search_module_records",
+      "content": "{\"ok\": true, \"module\": \"alerts\", \"total\": 140, \"showing\": 25, \"results\": [{\"iri\": \"/api/3/alerts/a1\", \"label\": \"Brute force from 203.0.113.9\", \"id\": 1}], \"page\": 1, \"pages\": 6, \"truncated\": true, \"has_more\": true, \"next_page\": 2, \"message\": \"showing records 1-25 of 140. This is a PARTIAL view.\"}",
+      "duration_ms": 900
+     },
+     {
+      "type": "tool_use",
+      "id": "tu_2",
+      "name": "search_module_records",
+      "input": {
+       "module": "incidents",
+       "q": "203.0.113.9"
+      }
+     },
+     {
+      "type": "tool_result",
+      "tool_use_id": "tu_2",
+      "tool": "search_module_records",
+      "content": "{\"ok\": true, \"module\": \"alerts\", \"total\": 3, \"showing\": 3, \"results\": [], \"page\": 1, \"pages\": 1}",
+      "duration_ms": 400
+     },
+     {
+      "type": "text",
+      "text": "The brute-force alerts from 203.0.113.9 all target the VPN gateway."
+     },
+     {
+      "type": "usage",
+      "input_tokens": 1800,
+      "output_tokens": 90,
+      "cost_usd": 0.004
+     }
+    ]
+   }
+  }
+ ]
+}

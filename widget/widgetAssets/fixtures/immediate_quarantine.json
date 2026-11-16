@@ -1,0 +1,96 @@
+{
+    "scenario": "immediate_quarantine",
+    "delays": { "chat_turn": 1600, "chat_resume": 1200 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-opener",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "SOC flagged ransomware-pattern behavior on **HR-WS-04**. How do you want to respond?" },
+                    {
+                        "type": "choice_card",
+                        "id": "intent",
+                        "prompt": "Pick an approach:",
+                        "options": [
+                            { "label": "Take immediate action", "value": "immediate" },
+                            { "label": "Build a playbook",      "value": "playbook" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-action-kind",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    {
+                        "type": "choice_card",
+                        "id": "action_kind",
+                        "prompt": "Choose an action:",
+                        "options": [
+                            { "label": "Quarantine host",  "value": "quarantine" },
+                            { "label": "Block IP at edge", "value": "block_ip" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-pick-connector",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    {
+                        "type": "choice_card",
+                        "id": "connector_pick",
+                        "prompt": "Configured endpoint connectors that can quarantine:",
+                        "options": [
+                            { "label": "FortiEDR (tenant-prod)", "value": "fortiedr" },
+                            { "label": "FortiClient EMS",        "value": "forticlient" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-action-card",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "action_card",
+                        "id": "card-quarantine-1",
+                        "connector": "fortinet-fortiedr",
+                        "operation": "isolate_host",
+                        "summary": "FortiEDR: isolate HR-WS-04",
+                        "args": {
+                            "host": "HR-WS-04",
+                            "reason": "Ransomware-pattern behavior, alert #4821",
+                            "duration_minutes": 240
+                        },
+                        "editable_fields": ["host", "reason", "duration_minutes"]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-executed",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "tool_use",    "id": "mcp-1", "name": "execute_action", "input": { "connector": "fortinet-fortiedr", "operation": "isolate_host", "args": { "host": "HR-WS-04" } } },
+                    { "type": "tool_result", "tool_use_id": "mcp-1", "content": "{\"status\":\"success\",\"isolation_id\":\"ISO-9912\",\"agent_state\":\"isolated\"}" },
+                    { "type": "text", "text": "HR-WS-04 is isolated (FortiEDR id ISO-9912). It can only reach the management server." }
+                ]
+            }
+        }
+    ]
+}

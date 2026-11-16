@@ -1,0 +1,202 @@
+{
+    "scenario": "approval_then_manual_input",
+    "capture_divergence": [
+        {
+            "rule": "capture-frame-sequence",
+            "detail": "chat_resume#1: fixture [tool_use,tool_result,text,manual_input] vs capture [tool_result,manual_input,text]",
+            "why": "Deliberately cumulative on resume, to exercise the #91 widget fix. Six captures on two boxes show the connector sends the DELTA shape; this fixture is a test of widget robustness against the shape it does not send, not a claim about the wire."
+        },
+        {
+            "rule": "capture-frame-sequence",
+            "detail": "respond_manual_input#2: fixture [tool_use,tool_result,text] vs capture [text]",
+            "why": "Deliberately cumulative on resume, to exercise the #91 widget fix. Six captures on two boxes show the connector sends the DELTA shape; this fixture is a test of widget robustness against the shape it does not send, not a claim about the wire."
+        }
+    ],
+    "_comment": [
+        "APPROVE -> the run parks -> the form must appear in chat.",
+        "",
+        "The one transition nothing covered: approval_run_playbook_new stops at an",
+        "approved run that FINISHED, and manual_input_form starts at a turn that is",
+        "ALREADY parked. Neither drives approve -> resume -> form, which is where an",
+        "analyst actually gets stuck: if the form never renders, the run sits on the",
+        "box waiting for input nobody can give it.",
+        "",
+        "The chat_resume payload is the live shape captured on a real appliance from",
+        "'Manual Input Demo - Collect Note' (a playbook that pauses for a note, then",
+        "stamps it back). Note `ok:false` WITH `triggered:true` and a run_pk: the run",
+        "HAPPENED and is parked on the resumable seam. That double duty on ok:false",
+        "is the whole bug class -- the connector wire and the matrix grader both",
+        "already know the difference; the approval card is the last consumer that",
+        "does not.",
+        "",
+        "The arc does not end at the form. After submitting it the playbook finishes and",
+        "the analyst must be able to keep using the SAME chat -- typing an unrelated",
+        "question and getting a normal answer. A session that strands after a gated,",
+        "parked, resumed run is still broken from the analyst's side, so the fixture",
+        "carries the whole arc: approve -> park -> form -> playbook result -> a fresh,",
+        "unrelated turn."
+    ],
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50,
+        "respond_manual_input": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-mi-approve",
+                "stop_reason": "approval_required",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-mi-1",
+                        "name": "run_playbook",
+                        "input": {
+                            "playbook": "Manual Input Demo - Collect Note",
+                            "follow": true
+                        }
+                    },
+                    {
+                        "type": "approval_request",
+                        "approval_id": "ap-mi-1",
+                        "tool_use_id": "tu-mi-1",
+                        "tool": "run_playbook",
+                        "tier": 3,
+                        "args_hash": "9283ab12",
+                        "summary": "Run playbook: Manual Input Demo - Collect Note",
+                        "preview": {
+                            "tool": "run_playbook",
+                            "args": {
+                                "playbook": "Manual Input Demo - Collect Note",
+                                "follow": true
+                            }
+                        },
+                        "requires_step_up": false
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-mi-approve",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-mi-1",
+                        "name": "run_playbook",
+                        "input": {
+                            "playbook": "Manual Input Demo - Collect Note",
+                            "follow": true
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "call_id": "tu-mi-1",
+                        "name": "run_playbook",
+                        "tool": "run_playbook",
+                        "content": {
+                            "ok": false,
+                            "code": "awaiting_input",
+                            "playbook": "Manual Input Demo - Collect Note",
+                            "triggered": true,
+                            "run_pk": "9283",
+                            "status": "awaiting",
+                            "message": "'Manual Input Demo - Collect Note' paused awaiting manual input. Resume it with resume_playbook(run='9283', decision='approve'|'reject' or an option label, and inputs={field: value} for any fields below).",
+                            "awaiting": {
+                                "manual_input_id": 529,
+                                "title": "Enter a note for this device",
+                                "description": "Enter a note for this device",
+                                "is_approval": false,
+                                "fields": [
+                                    {
+                                        "name": "note",
+                                        "label": "Note",
+                                        "type": "string",
+                                        "data_type": "text",
+                                        "tooltip": null
+                                    }
+                                ],
+                                "options": [
+                                    {
+                                        "option": "Submit",
+                                        "primary": true
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": "The playbook is running and has paused for your input."
+                    },
+                    {
+                        "type": "manual_input",
+                        "id": "529",
+                        "question": "Enter a note for this device",
+                        "workflow_run_iri": "/wf/api/workflows/9283/",
+                        "fields": [
+                            {
+                                "name": "note",
+                                "label": "Note",
+                                "type": "text",
+                                "required": true
+                            }
+                        ]
+                    }
+                ]
+            },
+            "_comment": "CUMULATIVE, as the live connector actually sends it: the pre-approval tool_use frames repeat and the new ones are appended. Every tool_use here is already on screen, so a stale-replay guard keyed only on tool_use ids sees 'nothing new' and drops the whole turn -- taking the manual_input card with it (#91)."
+        },
+        {
+            "action": "respond_manual_input",
+            "response": {
+                "turn_id": "t-mi-resumed",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-mi-1",
+                        "name": "run_playbook",
+                        "input": {
+                            "playbook": "Manual Input Demo - Collect Note",
+                            "follow": true
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool": "run_playbook",
+                        "tool_use_id": "tu-mi-1",
+                        "content": "{\"ok\": true, \"status\": \"finished\"}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "The note was recorded and the run finished successfully."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_turn",
+            "_comment": "The unrelated follow-up. Consumed AFTER the approval turn (the mock walks entries per action in order), so it answers whatever is asked second -- the point is that a second turn happens at all and carries no residue of the playbook arc.",
+            "response": {
+                "turn_id": "t-unrelated",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Phishing triage starts with the sender domain and the URL reputation, not the attachment."
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "scenario": "compile_failure",
+    "delays": { "chat_turn": 50, "validate_yaml": 30, "compile_yaml": 40 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Draft (will fail to compile):\n\n```yaml\nname: Bad Compile\ntrigger:\n  type: manual\nsteps:\n  - id: step1\n    type: connector\n    connector: utilities\n    operation: ping_host\n    args:\n      host: '{{ vars.unterminated '\n```" }
+                ]
+            }
+        },
+        {
+            "action": "validate_yaml",
+            "response": { "ok": true, "warnings": [] }
+        },
+        {
+            "action": "compile_yaml",
+            "response": {
+                "ok": false,
+                "errors": [
+                    { "path": "steps[0].args.host", "message": "unterminated Jinja expression" },
+                    { "path": "steps[0]", "message": "could not resolve referenced variable 'vars.unterminated'" }
+                ]
+            }
+        }
+    ]
+}

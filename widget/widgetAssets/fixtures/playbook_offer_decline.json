@@ -1,0 +1,65 @@
+{
+    "scenario": "playbook_offer_decline",
+    "delays": { "chat_turn": 1500, "chat_resume": 1100 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-offer",
+                "stop_reason": "awaiting_playbook_offer",
+                "transcript": [
+                    { "type": "text", "text": "I've blocked **102.220.160.21** at the FortiGate edge and quarantined **smithDesktop**. The C2 channel is contained." },
+                    {
+                        "type": "playbook_offer",
+                        "id": "pb-offer-c2-1",
+                        "summary": "I've blocked 102.220.160.21 and quarantined smithDesktop. Want me to save this investigation as a repeatable playbook?",
+                        "title_suggestion": "C2 Containment -- 102.220.160.21",
+                        "trigger": { "kind": "on_create", "modules": ["alerts"], "label": "Runs when an alert is created" },
+                        "ops_summary": [
+                            { "connector": "fortigate-firewall", "operation": "block_ip_new",    "label": "Block 102.220.160.21" },
+                            { "connector": "fortiedr",           "operation": "isolate_endpoint", "label": "Quarantine smithDesktop" },
+                            { "label": "Record Outcome" }
+                        ],
+                        "editable_title": true
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "decision": "decline" },
+            "response": {
+                "turn_id": "t-offer-declined",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "No problem -- I won't save a playbook. The containment actions remain in effect and were logged for audit." }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "decision": "accept" },
+            "response": {
+                "turn_id": "t-offer-accepted",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Saved. The investigation is now a repeatable playbook." },
+                    {
+                        "type": "info_card",
+                        "id": "card-pb-pushed",
+                        "variant": "generic",
+                        "severity": "ok",
+                        "title": "Playbook pushed",
+                        "blocks": [
+                            { "kind": "rows", "rows": [
+                                { "label": "Playbook", "value": "C2 Containment -- 102.220.160.21" },
+                                { "label": "Workflow", "value": "/api/3/workflows/abc-123" }
+                            ] }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

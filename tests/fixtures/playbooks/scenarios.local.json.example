@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy to scenarios.local.json (gitignored) and fill in box-specific values obtained by seeding the fixtures (D2, via push_playbook) and capturing a real execution. Never commit this file — it carries workflow IRIs / execution ids tied to a specific appliance.",
+  "working_baseline":       { "workflow_iri": "/api/3/workflows/<uuid>" },
+  "broken_step_ref":        { "workflow_iri": "/api/3/workflows/<uuid>" },
+  "missing_error_handling": { "workflow_iri": "/api/3/workflows/<uuid>" },
+  "extensible":             { "workflow_iri": "/api/3/workflows/<uuid>" },
+  "run_failure_sample":     { "workflow_iri": "/api/3/workflows/<uuid>", "execution_id": "<workflow_run_iri_or_id>" }
+}

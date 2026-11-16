@@ -1,0 +1,62 @@
+{
+    "scenario": "approval_unverified",
+    "regression_pin": "an approval whose outcome never got verified -- a degraded state a working connector does not reach on demand",
+    "contract_version": "2.2.0",
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "contract_version": "2.2.0",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "action_card",
+                        "id": "card-block-ip-1",
+                        "connector": "fortinet-fortigate",
+                        "operation": "block_ip",
+                        "summary": "FortiGate: block 1.2.3.4 in block-list policy",
+                        "args": {
+                            "ip": "1.2.3.4",
+                            "policy": "block-list"
+                        },
+                        "editable_fields": [
+                            "ip",
+                            "policy"
+                        ]
+                    },
+                    {
+                        "type": "text",
+                        "text": "Here's what I'll run. Edit if you need to, then Confirm."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "contract_version": "2.2.0",
+                "stop_reason": "approval_unverified",
+                "transcript": [
+                    {
+                        "type": "error",
+                        "code": "approval_unverified",
+                        "message": "The approved action could not be cryptographically verified and was NOT executed. The suspended session failed its HMAC binding check. Please re-issue the request.",
+                        "retryable": false
+                    }
+                ]
+            }
+        }
+    ]
+}

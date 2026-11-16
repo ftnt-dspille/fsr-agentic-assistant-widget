@@ -1,0 +1,80 @@
+{
+  "scenario": "playbook_offer_student",
+  "delays": {
+    "chat_turn": 300,
+    "chat_resume": 300
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "t",
+        "stop_reason": "awaiting_playbook_offer",
+        "transcript": [
+          {
+            "type": "text",
+            "text": "Verified. Offering the playbook."
+          },
+          {
+            "advisory": "Built from the YAML above (not a recorded triage trace) -- review the steps before saving.",
+            "editable_title": true,
+            "final_yaml": "collection: 00 - FSR Studio\nplaybooks:\n- name: 'FortiAIGate: Student Prompt Investigation and Response'\n  trigger: start\n  is_active: true\n  parameters:\n  - student_key\n  steps:\n  - type: start\n    name: Start\n    button_label: FortiAIGate student investigation\n    next: Find related student alerts\n    module: alerts\n  - type: find_record\n    name: Find related student alerts\n    module: alerts\n    filters:\n    - field: name\n      operator: contains\n      value: \"{{ vars.input.params.student_key }}\"\n    limit: 100\n    next: Summarize related alerts\n  - type: set_variable\n    name: Summarize related alerts\n    vars:\n      related_count: \"{{ vars.steps.Find_related_student_alerts | length }}\"\n    next: Analyst approves key suspension\n  - type: manual_input\n    name: Analyst approves key suspension\n    message: \"Suspend the student API key? No containment connector is configured on this instance, so approval records the decision only.\"\n    options:\n    - option: Suspend\n      primary: true\n    - option: Keep\n    - option: Escalate\n    next: Record analyst verdict\n  - type: update_record\n    name: Record analyst verdict\n    module: alerts\n    record: \"{{ vars.input.records[0]['@id'] }}\"\n    fields:\n      aIVerdict: Suspicious\n",
+            "has_mutating_action": false,
+            "id": "pb_student_investigation",
+            "ops_summary": [
+              {
+                "label": "Start",
+                "step_type": "start"
+              },
+              {
+                "label": "Find related student alerts",
+                "step_type": "find_record"
+              },
+              {
+                "label": "Summarize related alerts",
+                "step_type": "set_variable"
+              },
+              {
+                "label": "Analyst approves key suspension",
+                "step_type": "manual_input"
+              },
+              {
+                "label": "Record analyst verdict",
+                "step_type": "update_record"
+              }
+            ],
+            "preceding_tool_use_id": "toolu_018G82NfuhCc1dyQX6CTbz34",
+            "summary": "Manual playbook on the alerts module. It finds related alerts for a student API key, asks the analyst to choose Suspend, Keep or Escalate, and writes the analyst verdict to the alert. Key suspension is an approval-only record: no containment connector is configured on this instance, so nothing is suspended automatically.",
+            "title_suggestion": "FortiAIGate: Student Prompt Investigation and Response",
+            "trigger": {
+              "kind": "start",
+              "label": "Runs when an analyst clicks \"FortiAIGate student investigation\" on an alert",
+              "manual": true,
+              "modules": [
+                "alerts"
+              ]
+            },
+            "type": "playbook_offer",
+            "warnings": [
+              {
+                "check": null,
+                "code": "bad_value",
+                "message": "operator 'contains' has no scalar FSR equivalent -- compiling to 'like' with a both-wrapped `%` pattern (SQL LIKE)",
+                "near": null,
+                "path": "playbooks[0].steps[1].query.filters[0].operator",
+                "severity": "warning",
+                "suggestion": null
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

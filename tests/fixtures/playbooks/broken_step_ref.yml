@@ -1,0 +1,28 @@
+# Scenario: dangling step reference — for Find issues / troubleshoot.
+# `trigger.next` points at "Notify analyst", a step that does not exist (the real
+# step is named "Send notification"). analyze_playbook/diagnose should flag the
+# unresolved reference; the C3 apply-patch path should offer to repoint it.
+collection: FSRPB Fixtures
+description: Playbook with a next-reference to a non-existent step.
+visible: true
+
+playbooks:
+  - name: Broken Step Ref
+    is_active: true
+    parameters: [alert_id]
+    steps:
+      - name: trigger
+        type: start
+        next: Notify analyst          # <-- no such step; real one is "Send notification"
+
+      - name: Send notification
+        type: connector
+        arguments:
+          connector: cyops_utilities
+          operation: no_op
+          params:
+            message: "alert {{ vars.input.params.alert_id }}"
+        next: Done
+
+      - name: Done
+        type: end

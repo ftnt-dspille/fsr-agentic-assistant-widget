@@ -1,0 +1,49 @@
+# Scenario: diagnose against a real execution — for diagnose_yaml_against_pb_execution.
+# A decision on a connector result where the "found" branch consumes a Jinja path
+# the upstream op may not populate, so a live run can fail at "Handle match". Pair
+# this YAML with a captured execution id (see scenarios.local.json; gitignored, no
+# box details in-tree) and diagnose should tie the runtime failure to the step.
+collection: FSRPB Fixtures
+description: Playbook whose live run can fail at a downstream Jinja consumer.
+visible: true
+
+playbooks:
+  - name: Run Failure Sample
+    is_active: true
+    parameters: [indicator]
+    steps:
+      - name: trigger
+        type: start
+        next: Lookup indicator
+
+      - name: Lookup indicator
+        type: connector
+        arguments:
+          connector: cyops_utilities
+          operation: no_op
+          params:
+            indicator: "{{ vars.input.params.indicator }}"
+        next: Matched?
+
+      - name: Matched?
+        type: decision
+        conditions:
+          - display: "Found"
+            when: "{{ vars.steps.Lookup_indicator.data.match == true }}"
+            next: Handle match
+          - display: "Else"
+            default: true
+            next: Done
+
+      - name: Handle match
+        type: connector
+        arguments:
+          connector: cyops_utilities
+          operation: no_op
+          params:
+            # Consumes a path the lookup op may not populate → runtime failure.
+            score: "{{ vars.steps.Lookup_indicator.data.threat.score }}"
+        next: Done
+
+      - name: Done
+        type: end

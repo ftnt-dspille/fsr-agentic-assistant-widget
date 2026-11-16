@@ -1,0 +1,44 @@
+{
+  "_comment": "Track D1 canonical example-playbook set. Each fixture maps to one authoring scenario and the acceptance outcome the widget must produce. Box-specific values (workflow IRIs from a D2 seed, captured execution ids) live in scenarios.local.json (gitignored) keyed by the same `id` — never commit box IPs/creds/ids here.",
+  "scenarios": [
+    {
+      "id": "working_baseline",
+      "file": "working_baseline.yml",
+      "quick_action": ["explain", "optimize"],
+      "expect": "Explain describes the flow; Optimize proposes only non-breaking refinements (no invented regressions).",
+      "clean": true
+    },
+    {
+      "id": "broken_step_ref",
+      "file": "broken_step_ref.yml",
+      "quick_action": ["find_issues"],
+      "expect": "analyze/diagnose flags the unresolved next-reference; apply-patch offers to repoint it; after apply, verify_enhancement is clean.",
+      "clean": false,
+      "defect": "dangling_next_reference"
+    },
+    {
+      "id": "missing_error_handling",
+      "file": "missing_error_handling.yml",
+      "quick_action": ["add_error_handling"],
+      "expect": "add-error-handling proposes a decision/failure route after the mutating op; verify_enhancement shows steps added, no removals.",
+      "clean": false,
+      "defect": "unhandled_failure"
+    },
+    {
+      "id": "extensible",
+      "file": "extensible.yml",
+      "quick_action": ["add_step"],
+      "expect": "add-a-step inserts exactly one new step and re-wires next; update_playbook lands it on the same workflow uuid (not a new collection).",
+      "clean": true
+    },
+    {
+      "id": "run_failure_sample",
+      "file": "run_failure_sample.yml",
+      "quick_action": ["find_issues"],
+      "expect": "diagnose_yaml_against_pb_execution ties the captured run failure to `Handle match`'s unpopulated Jinja path.",
+      "clean": false,
+      "defect": "runtime_jinja_unpopulated",
+      "needs_local": ["execution_id"]
+    }
+  ]
+}

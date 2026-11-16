@@ -1,0 +1,128 @@
+<form name="editWidgetForm" data-testid="cfg-form" data-ng-submit="save()" class="noMargin" novalidate>
+  <div class="modal-header">
+    <h3 class="modal-title col-md-9">Agentic Assistant &mdash; Settings</h3>
+    <button type="button" class="close" data-testid="cfg-close" data-ng-click="cancel()" data-dismiss="modal"
+            aria-label="Close" id="close-edit-widget-form-btn">
+      <div aria-hidden="true" class="version-button">+</div>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- ─── Behavior ────────────────────────────────────────────────────── -->
+    <h4 style="margin-top:0;">Behavior</h4>
+
+    <!-- The "Default intent" picker was removed: intent is no longer a setting.
+         The widget opens in `build` (playbook authoring) inside the playbook
+         designer and in `triage` everywhere else. Build needs an open playbook
+         to author against, so offering it on a dashboard only produced an
+         assistant with nothing to work on. See
+         docs/plans/build-persona-validation-plan.md. -->
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" data-testid="cfg-seed-from-entity" ng-model="config.seedFromEntity">
+        Start with a summary of the open record
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label for="cfg-max-turns" class="control-label">Maximum tool rounds per request</label>
+      <input id="cfg-max-turns" type="number" min="1" max="50" class="form-control"
+             data-testid="cfg-max-turns" ng-model="config.maxTurns">
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" data-testid="cfg-enable-step-verify" ng-model="config.enableStepVerify">
+        Show the per-step Verify panel in Build
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" data-testid="cfg-show-usage" ng-model="config.showUsage">
+        Show token usage and cost in the header
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label for="cfg-opener" class="control-label">Opening greeting</label>
+      <select id="cfg-opener" class="form-control"
+              data-testid="cfg-opener" ng-model="config.opener">
+        <option value="auto">Default &mdash; wait for the analyst</option>
+        <option value="on">Greet first &mdash; open with a choice of what to do</option>
+        <option value="off">Never greet &mdash; empty chat until the analyst sends</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="cfg-create-strategy" class="control-label">Playbook build method</label>
+      <select id="cfg-create-strategy" class="form-control"
+              data-testid="cfg-create-strategy" ng-model="config.createStrategy">
+        <option value="auto">Automatic - choose the best method for the model</option>
+        <option value="guided">Guided - assemble from validated building blocks</option>
+        <option value="freeform">Freeform - let the model write the playbook directly</option>
+      </select>
+      <p class="help-block">Guided builds every playbook from validated steps, which is more reliable with smaller models. Freeform lets a capable model write the playbook directly. Automatic picks per model.</p>
+    </div>
+
+    <!-- ─── Advanced: developer and demo controls, collapsed by default ─── -->
+    <details class="cfg-advanced" data-testid="cfg-advanced">
+      <summary data-testid="cfg-advanced-toggle">Advanced</summary>
+    <div class="form-group">
+      <label>
+        <input type="checkbox" data-testid="cfg-contract-strict" ng-model="config.contractStrict">
+        Strict version checking
+      </label>
+      <p class="help-block">Off: a minor version mismatch with the connector is logged and a major one shows a banner. On: any mismatch stops the turn with an error.</p>
+    </div>
+
+    <h5 class="cfg-subhead">Demo mode</h5>
+
+    <div class="form-group">
+      <label for="cfg-mock-mode" class="control-label">Backend</label>
+      <select id="cfg-mock-mode" class="form-control"
+              data-testid="cfg-mock-mode" ng-model="config.mockMode">
+        <option value="auto">Auto &mdash; mock on localhost, real elsewhere</option>
+        <option value="mock">Mock &mdash; replay a fixture (demo / offline)</option>
+        <option value="real">Real &mdash; call the connector above</option>
+      </select>
+      <p class="help-block">URL <code>?mock=&lt;name&gt;</code> and <code>?real=1</code> still override this per page-load.</p>
+    </div>
+
+    <div class="form-group" ng-if="config.mockMode !== 'real'">
+      <label for="cfg-mock-scenario" class="control-label">Mock scenario</label>
+      <select id="cfg-mock-scenario" class="form-control"
+              data-testid="cfg-mock-scenario" ng-model="config.mockScenario">
+        <option ng-repeat="s in mockScenarios" value="{{s.value}}">{{s.label}}</option>
+      </select>
+    </div>
+
+    <div class="form-group" ng-if="config.mockMode !== 'real'">
+      <label for="cfg-mock-speed" class="control-label">Response speed</label>
+      <select id="cfg-mock-speed" class="form-control"
+              data-testid="cfg-mock-speed" ng-model="config.mockSpeed">
+        <option value="real">Real-time &mdash; fixture delays as authored (~1.5 s)</option>
+        <option value="fast">Fast &mdash; clamp to 30 ms</option>
+        <option value="instant">Instant &mdash; no delay</option>
+      </select>
+    </div>
+
+    </details>
+  </div>
+
+  <div class="modal-footer">
+    <span class="save-feedback" data-testid="cfg-save-feedback" ng-if="saveFeedback">{{saveFeedback}}</span>
+    <button id="edit-widget-save" type="submit" data-testid="cfg-save" class="btn btn-sm btn-primary">
+      <i class="icon icon-check margin-right-sm"></i>Save
+    </button>
+    <button id="edit-widget-cancel" type="button" class="btn btn-sm btn-default"
+            data-testid="cfg-cancel" data-ng-click="cancel()">
+      <i class="icon icon-close margin-right-sm"></i>Close
+    </button>
+  </div>
+</form>
+
+<style>
+</style>

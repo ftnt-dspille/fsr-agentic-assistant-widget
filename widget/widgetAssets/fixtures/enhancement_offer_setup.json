@@ -1,0 +1,79 @@
+{
+  "scenario": "enhancement_new_playbook_setup",
+  "delays": {
+    "chat_turn": 800,
+    "chat_resume": 600
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "t-enh-child",
+        "stop_reason": "awaiting_enhancement_offer",
+        "transcript": [
+          {
+            "type": "text",
+            "text": "The block now lives in its own playbook that takes the IP, and this one calls it."
+          },
+          {
+            "type": "enhancement_offer",
+            "id": "enh-child-1-setup",
+            "summary": "Move the block into a reusable playbook and call it.",
+            "verified_id": "ver-child-1",
+            "final_yaml": "collection: C\nplaybooks:\n  - name: Alert Block\n    steps:\n      - {name: Start, type: start_on_create, module: alerts, next: Call Block}\n      - {name: Call Block, type: workflow_reference, target: Block One IP, ip: '{{ vars.input.records[0].sourceIp }}'}\n  - name: Block One IP\n    parameters: [ip]\n    steps:\n      - {name: Start, type: start}\n",
+            "trigger": {
+              "kind": "on_create",
+              "modules": [
+                "alerts"
+              ],
+              "label": "Runs when an alert is created"
+            },
+            "playbooks_added": [
+              "Block One IP"
+            ],
+            "steps_added": [
+              "Call Block"
+            ],
+            "steps_removed": [],
+            "steps_modified": [],
+            "ops_summary": [
+              {
+                "label": "Start",
+                "step_type": "start"
+              },
+              {
+                "label": "Call Block",
+                "step_type": "workflow_reference"
+              }
+            ],
+            "runs_after_setup": [
+              {
+                "connector": "fortiedr",
+                "reason": "not_configured",
+                "message": "This playbook needs FortiEDR, which is not set up yet.",
+                "setup_steps": [
+                  "Open Connectors and add FortiEDR.",
+                  "Enter the server address and credentials."
+                ]
+              },
+              {
+                "connector": "fortigate-firewall",
+                "reason": "not_shared",
+                "message": "FortiGate is set up but not shared with your team.",
+                "setup_steps": [
+                  "Ask an administrator to share it with your team."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+# Publishes the widget package when a version tag v<X.Y.Z> is pushed.
+#
+# On a tag push this workflow:
+#   1. checks out this widget repo and the public devkit repo
+#      (ftnt-dspille/fsr-widget-devkit), which holds the packager and harness;
+#   2. fails unless the tag equals the "version" in widget/info.json;
+#   3. installs the harness from its pinned lockfile (the install runs the
+#      harness prepare step, which compiles packager.js; packager.js is not
+#      tracked in the devkit);
+#   4. packs widget/ into <name>-<version>.tgz with the harness packager;
+#   5. creates the GitHub release for the tag with the .tgz attached.
+#
+# Only the tag push starts this. The workflow does not push code or tags.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the widget repo
+        uses: actions/checkout@v4
+        with:
+          path: widget-repo
+
+      - name: Check out the devkit (packager and harness)
+        uses: actions/checkout@v4
+        with:
+          repository: ftnt-dspille/fsr-widget-devkit
+          ref: main
+          path: devkit
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm (harness pins pnpm 8.14.2)
+        run: npm install -g pnpm@8.14.2
+
+      - name: Verify the tag matches widget/info.json
+        working-directory: widget-repo
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./widget/info.json').version")"
+          if [ "${TAG#v}" != "$VERSION" ]; then
+            echo "::error::tag $TAG does not match widget/info.json version $VERSION"
+            exit 1
+          fi
+          echo "tag $TAG matches version $VERSION"
+
+      - name: Install the harness
+        working-directory: devkit/fortisoar-widget-harness
+        run: pnpm install --frozen-lockfile
+
+      - name: Pack the widget
+        env:
+          HARNESS_DIR: ${{ github.workspace }}/devkit/fortisoar-widget-harness
+          WIDGET_DIR: ${{ github.workspace }}/widget-repo/widget
+          OUT_DIR: ${{ github.workspace }}/dist
+        run: |
+          set -euo pipefail
+          node -e '
+            const { packageWidget } = require(process.env.HARNESS_DIR + "/packager.js");
+            packageWidget(process.env.WIDGET_DIR, process.env.OUT_DIR)
+              .then((r) => console.log(JSON.stringify(r, null, 2)))
+              .catch((e) => { console.error(e.message); process.exit(1); });
+          '
+          ls -l dist
+          tar -tzf dist/*.tgz
+
+      - name: Create the GitHub release
+        working-directory: widget-repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" ../dist/*.tgz --verify-tag --title "$TAG" --generate-notes

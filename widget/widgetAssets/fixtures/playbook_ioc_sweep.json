@@ -1,0 +1,149 @@
+{
+    "scenario": "playbook_ioc_sweep",
+    "delays": { "chat_turn": 1800, "chat_resume": 1500, "respond_manual_input": 1700 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-opener",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "SOC summary points at IOC **1.2.3.4** seen on **HR-WS-04**. How do you want to respond?" },
+                    {
+                        "type": "choice_card",
+                        "id": "intent",
+                        "prompt": "Pick an approach:",
+                        "options": [
+                            { "label": "Take immediate action", "value": "immediate" },
+                            { "label": "Build a repeatable playbook", "value": "playbook" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-hunt-pick",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "Good -- a playbook makes this re-runnable. Which hunt template should I build?" },
+                    {
+                        "type": "choice_card",
+                        "id": "hunt_kind",
+                        "prompt": "Hunt template:",
+                        "options": [
+                            { "label": "Retroactive IOC sweep", "value": "ioc_sweep", "hint": "FortiAnalyzer search + EDR quarantine + edge block" },
+                            { "label": "Lateral-movement check", "value": "lateral" },
+                            { "label": "Persistence sweep", "value": "persistence" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-build-confirm",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "Drafting **IOC Sweep & Contain** with FortiAnalyzer → FortiEDR → FortiGate. The playbook will pause for your input before destructive steps.\n\n```yaml\nname: IOC Sweep and Contain\ntrigger:\n  type: manual\nsteps:\n  - id: hunt\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: search_logs\n    args:\n      device_filter: fortigate\n      query: \"srcip={{ vars.ioc }} OR dstip={{ vars.ioc }}\"\n      window_hours: 72\n  - id: correlate\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: correlate_hosts\n    args: { hits: '{{ hunt.result }}' }\n  - id: confirm_hosts\n    type: manual_input\n    question: \"Confirm hosts to quarantine\"\n    fields: [{ name: hosts, type: list, default: '{{ correlate.result.hosts }}' }]\n  - id: quarantine\n    type: connector\n    connector: fortinet-fortiedr\n    operation: isolate_hosts\n    args: { hosts: '{{ confirm_hosts.values.hosts }}' }\n  - id: confirm_block\n    type: manual_input\n    question: \"Block IOC at edge?\"\n    fields: [{ name: block, type: bool, default: true }]\n  - id: block_edge\n    type: connector\n    when: \"{{ confirm_block.values.block == true }}\"\n    connector: fortinet-fortigate\n    operation: block_ip\n    args: { ip: '{{ vars.ioc }}', policy: block-list }\n  - id: update_incident\n    type: connector\n    connector: cyops_utilities\n    operation: append_to_incident\n    args: { incident: '{{ vars.incident_id }}', text: 'Hunt complete' }\n```" },
+                    {"type": "playbook_offer", "id": "offer-playbook_ioc_sweep-1", "summary": "Playbook drafted and verified.", "final_yaml": "name: IOC Sweep and Contain\ntrigger:\n  type: manual\nsteps:\n  - id: hunt\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: search_logs\n    args:\n      device_filter: fortigate\n      query: \"srcip={{ vars.ioc }} OR dstip={{ vars.ioc }}\"\n      window_hours: 72\n  - id: correlate\n    type: connector\n    connector: fortinet-fortianalyzer\n    operation: correlate_hosts\n    args: { hits: '{{ hunt.result }}' }\n  - id: confirm_hosts\n    type: manual_input\n    question: \"Confirm hosts to quarantine\"\n    fields: [{ name: hosts, type: list, default: '{{ correlate.result.hosts }}' }]\n  - id: quarantine\n    type: connector\n    connector: fortinet-fortiedr\n    operation: isolate_hosts\n    args: { hosts: '{{ confirm_hosts.values.hosts }}' }\n  - id: confirm_block\n    type: manual_input\n    question: \"Block IOC at edge?\"\n    fields: [{ name: block, type: bool, default: true }]\n  - id: block_edge\n    type: connector\n    when: \"{{ confirm_block.values.block == true }}\"\n    connector: fortinet-fortigate\n    operation: block_ip\n    args: { ip: '{{ vars.ioc }}', policy: block-list }\n  - id: update_incident\n    type: connector\n    connector: cyops_utilities\n    operation: append_to_incident\n    args: { incident: '{{ vars.incident_id }}', text: 'Hunt complete' }\n"},
+                    {
+                        "type": "choice_card",
+                        "id": "build_confirm",
+                        "prompt": "Create this playbook in FortiSOAR?",
+                        "options": [
+                            { "label": "Yes, create", "value": "yes" },
+                            { "label": "No, cancel",  "value": "no" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-built",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "tool_use",    "id": "v1", "name": "validate_yaml", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "v1", "content": "{\"ok\":true}" },
+                    { "type": "tool_use",    "id": "c1", "name": "compile_yaml",  "input": {} },
+                    { "type": "tool_result", "tool_use_id": "c1", "content": "{\"ok\":true,\"workflow_uuid\":\"wf-ioc-sweep-7\"}" },
+                    { "type": "tool_use",    "id": "p1", "name": "push_playbook", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "p1", "content": "{\"ok\":true,\"workflow_iri\":\"/api/3/workflows/wf-ioc-sweep-7\"}" },
+                    { "type": "text", "text": "Playbook **IOC Sweep and Contain** saved to FortiSOAR (wf-ioc-sweep-7)." },
+                    {
+                        "type": "choice_card",
+                        "id": "run_confirm",
+                        "prompt": "Run it now against this incident?",
+                        "options": [
+                            { "label": "Yes, run now", "value": "yes" },
+                            { "label": "No, save for later", "value": "no" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "t-running-1",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    { "type": "text", "text": "Playbook started (run id wfr-501)." },
+                    { "type": "tool_use",    "id": "s1", "name": "step.hunt",      "input": { "ioc": "1.2.3.4", "window_hours": 72 } },
+                    { "type": "tool_result", "tool_use_id": "s1", "content": "{\"hits\":47,\"by_host\":{\"HR-WS-04\":31,\"HR-WS-12\":11,\"FIN-LAP-02\":5}}" },
+                    { "type": "tool_use",    "id": "s2", "name": "step.correlate", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "s2", "content": "{\"hosts\":[\"HR-WS-04\",\"HR-WS-12\",\"FIN-LAP-02\"]}" },
+                    {
+                        "type": "manual_input",
+                        "id": "mi-hosts",
+                        "workflow_run_iri": "/api/3/workflow_runs/wfr-501",
+                        "question": "Confirm host list before quarantine (edit to drop any false positives):",
+                        "fields": [
+                            { "name": "hosts", "label": "Hosts (comma-separated)", "default": "HR-WS-04,HR-WS-12,FIN-LAP-02" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "respond_manual_input",
+            "response": {
+                "turn_id": "t-running-2",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    { "type": "tool_use",    "id": "s3", "name": "step.quarantine", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "s3", "content": "{\"isolated\":3,\"ids\":[\"ISO-9912\",\"ISO-9913\",\"ISO-9914\"]}" },
+                    {
+                        "type": "manual_input",
+                        "id": "mi-block",
+                        "workflow_run_iri": "/api/3/workflow_runs/wfr-501",
+                        "question": "Quarantine done. Also block 1.2.3.4 at the edge?",
+                        "fields": [
+                            { "name": "block", "label": "Block at edge (true/false)", "default": "true" }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "action": "respond_manual_input",
+            "response": {
+                "turn_id": "t-done",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "tool_use",    "id": "s4", "name": "step.block_edge", "input": { "ip": "1.2.3.4" } },
+                    { "type": "tool_result", "tool_use_id": "s4", "content": "{\"ok\":true,\"policy_id\":\"BL-7741\"}" },
+                    { "type": "tool_use",    "id": "s5", "name": "step.update_incident", "input": {} },
+                    { "type": "tool_result", "tool_use_id": "s5", "content": "{\"ok\":true,\"incident\":\"#4821\"}" },
+                    { "type": "text", "text": "Done. 3 hosts isolated, 1.2.3.4 blocked at edge, incident #4821 updated. Playbook **IOC Sweep and Contain** is saved -- you can re-run it on any future alert." },
+                    { "type": "usage", "input_tokens": 5120, "output_tokens": 1430, "cost_usd": 0.0392 }
+                ]
+            }
+        }
+    ]
+}

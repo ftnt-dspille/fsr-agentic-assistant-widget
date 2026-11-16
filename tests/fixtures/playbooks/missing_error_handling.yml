@@ -1,0 +1,29 @@
+# Scenario: risky connector step with no failure branch — for Add error handling.
+# "Block IP" is a mutating connector op whose failure isn't routed anywhere: the
+# playbook has no decision on its result and no on-failure path, so a connector
+# error silently ends the run. Add-error-handling should propose a decision (or
+# failure route) after the risky step before the terminal end.
+collection: FSRPB Fixtures
+description: Mutating connector op with no failure handling after it.
+visible: true
+
+playbooks:
+  - name: Missing Error Handling
+    is_active: true
+    parameters: [ip]
+    steps:
+      - name: trigger
+        type: start
+        next: Block IP
+
+      - name: Block IP
+        type: connector
+        arguments:
+          connector: cyops_utilities
+          operation: no_op
+          params:
+            ip: "{{ vars.input.params.ip }}"
+        next: Done          # <-- no check on the block result; failure is unhandled
+
+      - name: Done
+        type: end

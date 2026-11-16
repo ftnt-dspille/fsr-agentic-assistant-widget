@@ -1,0 +1,233 @@
+{
+    "scenario": "noc_device_down",
+    "contract_version": "2.1.0",
+    "default_session_id": "demo-noc-device-down-001",
+    "_doc": "NOC device-down triage on the seeded FGT-BRANCH-04 scenario (managed FortiGate stopped reporting to FortiManager at 03:14, preceded by a WAN1 link-down at 03:11; HA peer FGT-BRANCH-04-B still up; last policy push clean). Exercises the Phase A/B NOC toolset end to end: get_record on the FMG alert -> fmg_get_device_status (down) -> fmg_get_ha_status (peer up = failover, not total outage) -> faz_search_device_events + faz_event_summary (last logs: WAN1 link-down, tunnel-down) -> fmg_get_policy_package_status (clean, rules out a bad push). Diagnoses upstream/power, not config, and emits a findings info_card. Read-only: NO action card (remediation = field dispatch; any SOAR mutation would go through a tier-3 approval card). Uses only existing contract event types -> no widget change.",
+    "delays": {
+        "chat_turn": 1500,
+        "chat_resume": 1200
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-noc-device-down",
+                "contract_version": "2.1.0",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "rec-1",
+                        "name": "get_record",
+                        "input": {
+                            "module": "alerts",
+                            "uuid": "noc-2026-06-10-0314"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "rec-1",
+                        "tool": "get_record",
+                        "content": "{\"status\":\"success\",\"record\":{\"name\":\"FGT-BRANCH-04 stopped reporting to FortiManager\",\"severity\":\"High\",\"source\":\"FortiManager\",\"deviceName\":\"FGT-BRANCH-04\",\"firstSeen\":\"2026-06-10T03:14:07Z\"}}",
+                        "duration_ms": 820
+                    },
+                    {
+                        "type": "text",
+                        "text": "Triaging the NOC alert: **FGT-BRANCH-04** stopped reporting to FortiManager. I'll confirm reachability, check HA, corroborate the last logs in FortiAnalyzer, and rule a bad config push in or out before calling a root cause."
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "fmg-1",
+                        "name": "fmg_get_device_status",
+                        "input": {
+                            "device": "FGT-BRANCH-04"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "fmg-1",
+                        "tool": "fmg_get_device_status",
+                        "content": "{\"ok\":true,\"op\":\"json_rpc_get\",\"count\":1,\"devices\":[{\"name\":\"FGT-BRANCH-04\",\"serial\":\"FGT60F0000000404\",\"ip\":\"198.51.100.13\",\"conn_status\":\"down\",\"conf_status\":\"insync\",\"ha_mode\":\"a-p\",\"platform\":\"FortiGate-60F\",\"os_version\":\"7.4.3\",\"last_checked\":\"2026-06-10T03:14:07Z\"}]}",
+                        "duration_ms": 1430
+                    },
+                    {
+                        "type": "text",
+                        "text": "FortiManager confirms **FGT-BRANCH-04 is down** (last check 03:14:07, conf in-sync). It's an active-passive HA pair -- checking whether the peer carried the traffic."
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "fmg-2",
+                        "name": "fmg_get_ha_status",
+                        "input": {
+                            "device": "FGT-BRANCH-04"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "fmg-2",
+                        "tool": "fmg_get_ha_status",
+                        "content": "{\"ok\":true,\"op\":\"json_rpc_get\",\"members\":[{\"name\":\"FGT-BRANCH-04\",\"serial\":\"FGT60F0000000404\",\"role\":\"master\",\"prio\":128,\"conn_status\":\"down\"},{\"name\":\"FGT-BRANCH-04-B\",\"serial\":\"FGT60F0000000405\",\"role\":\"slave\",\"prio\":100,\"conn_status\":\"up\"}]}",
+                        "duration_ms": 1110
+                    },
+                    {
+                        "type": "text",
+                        "text": "Good news for the branch: the HA peer **FGT-BRANCH-04-B is up**, so this is a failover, not a full outage -- traffic likely survived. Now the last logs the master sent before it went silent."
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "faz-1",
+                        "name": "faz_search_device_events",
+                        "input": {
+                            "device": "FGT-BRANCH-04",
+                            "window": "6h"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "faz-1",
+                        "tool": "faz_search_device_events",
+                        "content": "{\"ok\":true,\"op\":\"start_and_fetch_bulk_device_logs\",\"count\":3,\"events\":[{\"ts\":\"2026-06-10T03:13:55Z\",\"event_type\":\"event\",\"action\":\"link-monitor\",\"msg\":\"Link monitor: WAN1 (wan1) is down\"},{\"ts\":\"2026-06-10T03:11:02Z\",\"event_type\":\"event\",\"action\":\"interface-stat-change\",\"msg\":\"Interface wan1 status changed to down\"},{\"ts\":\"2026-06-10T03:05:40Z\",\"event_type\":\"event\",\"action\":\"tunnel-down\",\"msg\":\"IPsec tunnel HQ-BRANCH04 went down\"}]}",
+                        "duration_ms": 4200
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "faz-2",
+                        "name": "faz_event_summary",
+                        "input": {
+                            "device": "FGT-BRANCH-04",
+                            "window": "6h"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "faz-2",
+                        "tool": "faz_event_summary",
+                        "content": "{\"ok\":true,\"op\":\"faz_event_summary\",\"scanned\":3,\"first_ts\":\"2026-06-10T03:05:40Z\",\"last_ts\":\"2026-06-10T03:13:55Z\",\"by_action\":{\"link-monitor\":1,\"interface-stat-change\":1,\"tunnel-down\":1}}",
+                        "duration_ms": 1320
+                    },
+                    {
+                        "type": "text",
+                        "text": "Clear sequence: **WAN1 went down at 03:11**, the IPsec tunnel dropped, the link monitor fired at 03:13:55 -- then silence at 03:14. That points at the upstream circuit, not the box. Last check: was the most recent config push clean?"
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "fmg-3",
+                        "name": "fmg_get_policy_package_status",
+                        "input": {
+                            "device": "FGT-BRANCH-04"
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "fmg-3",
+                        "tool": "fmg_get_policy_package_status",
+                        "content": "{\"ok\":true,\"op\":\"json_rpc_get\",\"count\":1,\"packages\":[{\"package\":\"branch-edge\",\"device\":\"FGT-BRANCH-04\",\"status\":\"installed\"}]}",
+                        "duration_ms": 980
+                    },
+                    {
+                        "type": "info_card",
+                        "id": "noc-findings-fgt-branch-04",
+                        "variant": "ioc_enrichment",
+                        "severity": "warning",
+                        "title": "Diagnosis: FGT-BRANCH-04 down -- upstream WAN1 failure (not config)",
+                        "blocks": [
+                            {
+                                "kind": "tags",
+                                "tags": [
+                                    {
+                                        "label": "HA failover",
+                                        "severity": "info"
+                                    },
+                                    {
+                                        "label": "Peer up",
+                                        "severity": "info"
+                                    },
+                                    {
+                                        "label": "WAN1 down",
+                                        "severity": "warning"
+                                    },
+                                    {
+                                        "label": "Tunnel down",
+                                        "severity": "warning"
+                                    },
+                                    {
+                                        "label": "Config clean",
+                                        "severity": "info"
+                                    }
+                                ]
+                            },
+                            {
+                                "kind": "rows",
+                                "rows": [
+                                    {
+                                        "label": "Device",
+                                        "value": "FGT-BRANCH-04 (FGT60F0000000404)"
+                                    },
+                                    {
+                                        "label": "Unreachable since",
+                                        "value": "2026-06-10 03:14:07Z"
+                                    },
+                                    {
+                                        "label": "HA peer",
+                                        "value": "FGT-BRANCH-04-B -- up (traffic preserved)",
+                                        "severity": "info"
+                                    },
+                                    {
+                                        "label": "Last policy install",
+                                        "value": "branch-edge -- installed (clean)"
+                                    },
+                                    {
+                                        "label": "Likely root cause",
+                                        "value": "Upstream WAN1 circuit / power",
+                                        "severity": "warning"
+                                    }
+                                ]
+                            },
+                            {
+                                "kind": "table",
+                                "columns": [
+                                    "Time",
+                                    "Signal"
+                                ],
+                                "rows": [
+                                    [
+                                        "03:05:40",
+                                        "IPsec tunnel HQ-BRANCH04 down"
+                                    ],
+                                    [
+                                        "03:11:02",
+                                        "Interface wan1 status -> down"
+                                    ],
+                                    [
+                                        "03:13:55",
+                                        "Link monitor: WAN1 down (last log)"
+                                    ],
+                                    [
+                                        "03:14:07",
+                                        "Stopped reporting to FMG"
+                                    ]
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "text",
+                        "text": "**Root cause:** FGT-BRANCH-04 lost its WAN1 uplink at ~03:11 (tunnel down, link-monitor critical) and went silent at 03:14. The HA peer **FGT-BRANCH-04-B is up**, so the branch stayed online; the last policy push was clean, so this is **not** a bad config -- it's an **upstream WAN1 circuit or power** problem at the site.\n\nRecommended actions (no SOAR mutation -- these are field/NOC steps):\n- Dispatch / contact the branch to check WAN1 ISP link + power.\n- Confirm FGT-BRANCH-04-B is healthy and carrying traffic (it is, per HA).\n- Open a circuit ticket with the ISP for the WAN1 outage at 03:11.\n\nAny device-side fix (reboot, policy re-install) would go through an approval card -- none is warranted here yet."
+                    }
+                ],
+                "usage": {
+                    "input_tokens": 5120,
+                    "output_tokens": 840,
+                    "cost_usd": 0.0288,
+                    "model": "claude-sonnet-4-5"
+                }
+            }
+        }
+    ]
+}

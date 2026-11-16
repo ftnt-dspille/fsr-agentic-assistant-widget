@@ -1,0 +1,27 @@
+{
+    "scenario": "history_rehydrate",
+    "delays": { "chat_history": 30 },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": [
+                    {
+                        "user": "Build me a SOAR playbook that enriches an IP indicator",
+                        "transcript": [
+                            { "type": "text", "text": "Draft:\n\n```yaml\nname: Enrich IP\nsteps:\n  - id: lookup\n    type: connector\n    connector: virustotal\n    operation: lookup_ip\n    args: {ip: '{{vars.ip}}'}\n```" },
+                            {"type": "playbook_offer", "id": "offer-history_rehydrate-1", "summary": "Playbook drafted and verified.", "final_yaml": "name: Enrich IP\nsteps:\n  - id: lookup\n    type: connector\n    connector: virustotal\n    operation: lookup_ip\n    args: {ip: '{{vars.ip}}'}\n"}
+                        ]
+                    },
+                    {
+                        "user": "Add an alert if reputation < 0",
+                        "transcript": [
+                            { "type": "text", "text": "Updated:\n\n```yaml\nname: Enrich IP And Alert\nsteps:\n  - id: lookup\n    type: connector\n    connector: virustotal\n    operation: lookup_ip\n    args: {ip: '{{vars.ip}}'}\n  - id: alert\n    type: connector\n    when: '{{ lookup.result.reputation < 0 }}'\n    connector: cyops_utilities\n    operation: create_alert\n    args: {name: 'Bad IP {{vars.ip}}'}\n```" },
+                            {"type": "playbook_offer", "id": "offer-history_rehydrate-2", "summary": "Playbook drafted and verified.", "final_yaml": "name: Enrich IP And Alert\nsteps:\n  - id: lookup\n    type: connector\n    connector: virustotal\n    operation: lookup_ip\n    args: {ip: '{{vars.ip}}'}\n  - id: alert\n    type: connector\n    when: '{{ lookup.result.reputation < 0 }}'\n    connector: cyops_utilities\n    operation: create_alert\n    args: {name: 'Bad IP {{vars.ip}}'}\n"}
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

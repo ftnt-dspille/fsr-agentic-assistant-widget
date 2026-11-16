@@ -1,0 +1,37 @@
+# Scenario: working playbook meant to receive a new step — for Add a step / modify.
+# A clean two-op flow. Add-a-step should insert one new step (e.g. an enrichment
+# connector op between "Fetch alert" and "Create incident") and re-wire `next`
+# so verify_enhancement shows exactly one step added on the same workflow uuid.
+collection: FSRPB Fixtures
+description: Clean playbook used as the add-a-step / modify base.
+visible: true
+
+playbooks:
+  - name: Extensible
+    is_active: true
+    parameters: [alert_id]
+    steps:
+      - name: trigger
+        type: start
+        next: Fetch alert
+
+      - name: Fetch alert
+        type: connector
+        arguments:
+          connector: cyops_utilities
+          operation: no_op
+          params:
+            alert_id: "{{ vars.input.params.alert_id }}"
+        next: Create incident
+
+      - name: Create incident
+        type: create_record
+        arguments:
+          module: incidents
+          resource:
+            name: "Incident for {{ vars.input.params.alert_id }}"
+            severity: Medium
+        next: Done
+
+      - name: Done
+        type: end

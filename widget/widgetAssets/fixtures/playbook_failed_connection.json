@@ -1,0 +1,55 @@
+{
+  "scenario": "playbook_failed_connection",
+  "contract_version": "2.1.0",
+  "default_session_id": "mock-session-failed-run",
+  "_doc": "Recorded shape of a failed run where every input filled in: the failure is outside the playbook (connection), so no playbook change is needed.",
+  "delays": {
+    "chat_turn": 40
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "mock-turn-failed-run",
+        "contract_version": "2.1.0",
+        "stop_reason": "end_turn",
+        "transcript": [
+          {
+            "type": "tool_use",
+            "id": "tu-why-1",
+            "name": "why_did_playbook_fail",
+            "input": {
+              "playbook_or_id": "Block Malicious IP on FortiGate"
+            }
+          },
+          {
+            "type": "tool_result",
+            "tool_use_id": "tu-why-1",
+            "tool": "why_did_playbook_fail",
+            "content": "{\n  \"ok\": false,\n  \"pb_execution\": \"9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d\",\n  \"run_status\": \"failed\",\n  \"playbook_name\": \"Block Malicious IP on FortiGate\",\n  \"step_diagnostics\": [\n    {\n      \"playbook\": \"Block Malicious IP on FortiGate\",\n      \"step\": \"Check Containment Target\",\n      \"arg_path\": \"when\",\n      \"template\": \"{{ vars.input.records[0].destinationIp | length > 0 }}\",\n      \"rendered\": \"True\",\n      \"ok\": true,\n      \"code\": \"ok\"\n    },\n    {\n      \"playbook\": \"Block Malicious IP on FortiGate\",\n      \"step\": \"Block IP on FortiGate\",\n      \"arg_path\": \"ip_addresses\",\n      \"template\": \"{{ vars.input.records[0].destinationIp }}\",\n      \"rendered\": \"203.0.113.45\",\n      \"ok\": true,\n      \"code\": \"ok\"\n    }\n  ],\n  \"available_step_keys\": [\n    \"Block_IP_on_FortiGate\",\n    \"Check_Containment_Target\"\n  ],\n  \"summary\": {\n    \"total_templates\": 2,\n    \"render_failures\": 0,\n    \"referenced_step_keys\": []\n  },\n  \"hints\": []\n}"
+          },
+          {
+            "type": "text",
+            "text": "Checking the last failed run of this playbook."
+          },
+          {
+            "type": "text",
+            "text": "The last run failed, but every input filled in, so the playbook itself is fine."
+          }
+        ],
+        "usage": {
+          "input_tokens": 5120,
+          "output_tokens": 840,
+          "cost_usd": 0.0288,
+          "model": "claude-sonnet-4-5"
+        }
+      }
+    }
+  ]
+}

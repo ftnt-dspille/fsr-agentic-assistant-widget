@@ -1,0 +1,142 @@
+{
+    "scenario": "manual_input_form",
+    "delays": {
+        "chat_turn": 80,
+        "chat_resume": 80,
+        "respond_manual_input": 80
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-mi-discover",
+                "stop_reason": "approval_required",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-1",
+                        "name": "run_playbook",
+                        "input": {
+                            "playbook": "Manual Input Demo - Collect Note",
+                            "follow": true
+                        }
+                    },
+                    {
+                        "type": "approval_request",
+                        "approval_id": "ap-1",
+                        "tool": "run_playbook",
+                        "tool_use_id": "tu-1",
+                        "args": {
+                            "playbook": "Manual Input Demo - Collect Note",
+                            "follow": true
+                        },
+                        "tier": 3,
+                        "requires_step_up": false
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": {
+                "decision": "approve",
+                "card_id": "ap-1"
+            },
+            "response": {
+                "turn_id": "t-mi-parked",
+                "stop_reason": "awaiting_manual_input",
+                "transcript": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-1",
+                        "name": "run_playbook",
+                        "tool": "run_playbook",
+                        "content": "{\"ok\":false,\"code\":\"awaiting_input\",\"playbook\":\"Manual Input Demo - Collect Note\",\"triggered\":true,\"run_pk\":\"84127\",\"status\":\"awaiting\",\"message\":\"'Manual Input Demo - Collect Note' paused awaiting manual input.\"}"
+                    },
+                    {
+                        "type": "manual_input",
+                        "id": "126",
+                        "question": "Choose a group and an item\n\nPick a group, then a dependent item.",
+                        "workflow_run_iri": "/wf/api/workflows/2971/",
+                        "fields": [
+                            {
+                                "name": "pick",
+                                "label": "Group and item",
+                                "type": "dynamic_list",
+                                "required": true,
+                                "groups": [
+                                    {
+                                        "value": "Group A",
+                                        "options": [
+                                            "a-one",
+                                            "a-two"
+                                        ]
+                                    },
+                                    {
+                                        "value": "Group B",
+                                        "options": [
+                                            "b-one"
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "verbose",
+                                "label": "Verbose output",
+                                "type": "checkbox",
+                                "default": true
+                            },
+                            {
+                                "name": "note",
+                                "label": "Note",
+                                "type": "text"
+                            },
+                            {
+                                "name": "params",
+                                "label": "Input Parameters",
+                                "type": "textarea",
+                                "default": "input:\n  lo_name:"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "text",
+                        "text": "The validation playbook paused for input -- pick from the list below and submit to continue."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "respond_manual_input",
+            "response": {
+                "turn_id": "t-mi-resumed",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Submitted -- the playbook resumed with your selection and finished."
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-mi-followup",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "What would you like me to do next?"
+                    }
+                ]
+            }
+        }
+    ]
+}

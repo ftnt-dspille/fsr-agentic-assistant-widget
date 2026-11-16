@@ -1,0 +1,14 @@
+{
+    "scenario": "connector_error",
+    "delays": { "chat_turn": 40 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "error": {
+                "message": "Connector 'fortinet-fsr-playbook-builder' not configured. Install the connector and create a configuration before chatting.",
+                "status": 400
+            }
+        }
+    ]
+}

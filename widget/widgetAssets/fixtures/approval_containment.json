@@ -1,0 +1,145 @@
+{
+    "scenario": "approval_containment",
+    "capture_divergence": [
+        {
+            "rule": "capture-op-sequence",
+            "detail": "fixture ops [chat_turn,chat_resume] vs capture ops [chat_turn]",
+            "why": "The recording was made with the approval left UNDECIDED, so the capture stops before the card and never reaches a chat_resume. It is evidence for the turn up to the decision point, and nothing after it. Re-record with the approval granted to retire this."
+        },
+        {
+            "rule": "capture-frame-sequence",
+            "detail": "chat_turn#0: fixture [activity,activity,activity,activity,text,tool_use,tool_result,tool_use,tool_result,text,approval_request] vs capture [activity,activity,activity,activity,text,tool_use,tool_result,tool_use,tool_result,text]",
+            "why": "The recording was made with the approval left UNDECIDED, so the capture stops before the card and never reaches a chat_resume. It is evidence for the turn up to the decision point, and nothing after it. Re-record with the approval granted to retire this."
+        }
+    ],
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "approval_required",
+                "transcript": [
+                    {
+                        "type": "activity",
+                        "text": "Searching FortiSIEM for events on 198.51.100.3"
+                    },
+                    {
+                        "type": "activity",
+                        "text": "Checking FortiGuard threat intel"
+                    },
+                    {
+                        "type": "activity",
+                        "text": "Cross-referencing with EDR telemetry"
+                    },
+                    {
+                        "type": "activity",
+                        "text": "Evaluating containment options"
+                    },
+                    {
+                        "type": "text",
+                        "text": "I've identified the C2 beacon on the finance host and evaluated containment options."
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "tu-siem-1",
+                        "name": "run_op",
+                        "input": {
+                            "connector": "fortisiem",
+                            "operation": "query_events",
+                            "args": {
+                                "ip": "198.51.100.3"
+                            }
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-siem-1",
+                        "tool": "run_op",
+                        "content": "{\"ok\":true,\"events\":[{\"source_ip\":\"198.51.100.3\",\"dest_ip\":\"45.155.205.233\",\"count\":42,\"severity\":\"critical\"}]}"
+                    },
+                    {
+                        "type": "tool_use",
+                        "id": "tu-edr-1",
+                        "name": "run_op",
+                        "input": {
+                            "connector": "fortiedr",
+                            "operation": "get_endpoint_status",
+                            "args": {
+                                "host": "finance-ws-12"
+                            }
+                        }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-edr-1",
+                        "tool": "run_op",
+                        "content": "{\"ok\":true,\"endpoint\":\"finance-ws-12\",\"isolate\":false,\"os\":\"Windows 11\"}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "The finance host finance-ws-12 is beaconing to 198.51.100.3 (C2). I can: 1) Block 198.51.100.3 at the perimeter (FortiGate), 2) Isolate host finance-ws-12 on FortiEDR, or 3) Run both. After containment I can run post-containment scans and search SIEM for other hosts."
+                    },
+                    {
+                        "type": "approval_request",
+                        "approval_id": "ap-containment-1",
+                        "tool_use_id": "tu-1",
+                        "tool": "mcp_soc__block_indicator",
+                        "tier": 3,
+                        "args_hash": "d00dfeed",
+                        "summary": "Block 198.51.100.3 at the perimeter.",
+                        "preview": {
+                            "tool": "mcp_soc__block_indicator",
+                            "args": {
+                                "indicator": "198.51.100.3",
+                                "indicator_type": "IP Address",
+                                "collectorId": 4412,
+                                "params": {
+                                    "policy": "Quarantine Based"
+                                }
+                            }
+                        },
+                        "requires_step_up": false
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": {
+                "decision": "approve",
+                "card_id": "ap-containment-1"
+            },
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-1",
+                        "name": "mcp_soc__block_indicator",
+                        "tool": "mcp_soc__block_indicator",
+                        "result": {
+                            "ok": true,
+                            "blocked": "198.51.100.3"
+                        },
+                        "content": "{\"ok\": true, \"blocked\": \"198.51.100.3\"}"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Blocked at the perimeter."
+                    }
+                ]
+            }
+        }
+    ]
+}

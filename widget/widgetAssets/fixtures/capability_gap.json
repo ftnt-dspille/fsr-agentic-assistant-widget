@@ -1,0 +1,60 @@
+{
+    "scenario": "capability_gap",
+    "delays": { "chat_turn": 80, "chat_resume": 80 },
+    "responses": [
+        { "action": "chat_history", "response": { "turns": [] } },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "t-capgap",
+                "stop_reason": "awaiting_choice",
+                "transcript": [
+                    { "type": "text", "text": "I traced the C2 beacon to **102.220.160.21** and confirmed the host **smithDesktop** is compromised. To contain it I need to isolate the endpoint, but I can't from here yet." },
+                    {
+                        "type": "capability_gap",
+                        "id": "capgap-fortiedr-1",
+                        "missing": "FortiEDR endpoint isolation",
+                        "why": "The FortiEDR connector isn't configured on this instance, so I can't quarantine smithDesktop automatically.",
+                        "fix_steps": [
+                            "Open Settings → Connectors and find FortiEDR",
+                            "Add the FortiEDR Manager URL and an API token with isolation scope",
+                            "Run the connector healthcheck and confirm it passes"
+                        ],
+                        "tips": [
+                            { "text": "Use a service account scoped to isolation only", "hint": "least-privilege" },
+                            { "text": "Token must be cloud-tenant, not on-prem" }
+                        ],
+                        "resume": { "label": "Re-check & continue", "value": "recheck" },
+                        "alternatives": [
+                            { "label": "Block IP at FortiGate instead", "value": "block_ip", "hint": "Contains the channel without EDR" },
+                            { "label": "Escalate to T2 manually", "value": "escalate" }
+                        ],
+                        "docs_url": "https://docs.fortinet.com/fortiedr/connector"
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "value": "block_ip" },
+            "response": {
+                "turn_id": "t-capgap-blocked",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "Done -- I blocked **102.220.160.21** at the FortiGate edge. The C2 channel is contained even without EDR isolation." }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "match": { "value": "recheck" },
+            "response": {
+                "turn_id": "t-capgap-recheck",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    { "type": "text", "text": "FortiEDR is healthy now -- I isolated **smithDesktop**. The endpoint is quarantined." }
+                ]
+            }
+        }
+    ]
+}
