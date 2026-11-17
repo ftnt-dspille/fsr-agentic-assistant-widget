@@ -39,7 +39,7 @@ declare namespace FsrPbChat {
   type WireEventType =
     | 'text' | 'tool_use' | 'tool_result' | 'usage'
     | 'approval_request' | 'choice_card' | 'action_card' | 'capability_gap'
-    | 'manual_input' | 'playbook_offer' | 'enhancement_offer'
+    | 'manual_input' | 'playbook_offer' | 'enhancement_offer' | 'persona_offer'
     | 'status_card' | 'info_card' | 'ioc_card' | 'verdict_card'
     | 'activity' | 'error' | 'unknown';
 
@@ -222,6 +222,27 @@ declare namespace FsrPbChat {
     warnings?: { message?: string; path?: string }[];
     preceding_tool_use_id?: string | null;
   }
+
+  /** The persona builder's Save offer. The connector drafts a module-scoped
+      persona (its standing memory for a kind of record) and emits this card;
+      accepting it writes the Key Store persona. Emitted by the connector's
+      deterministic author_persona turn (ops_persona_emit.build_persona_offer). */
+  interface PersonaOfferEvent {
+    type: 'persona_offer';
+    id?: string;
+    /** The module this persona mounts on. */
+    module?: string;
+    /** The drafted system prompt (the standing guide). The widget does NOT
+        render this raw -- it is the assistant's own instructions. */
+    value?: string;
+    /** tools.allow / may_write / ui. The widget reads may_write (write scope)
+        and ui.greeting only; it never renders tool names to the analyst. */
+    jSONValue?: { [k: string]: unknown };
+    label?: string;
+    /** An analyst-safe one-line summary of what the persona grants. */
+    summary?: string;
+    preceding_tool_use_id?: string | null;
+  }
   interface ActivityEvent { type: 'activity'; message?: string; phase?: string; }
   interface ErrorEvent { type: 'error'; message?: string; [k: string]: unknown; }
   /** Fallback the connector emits for an unrecognized fsr_playbooks event
@@ -264,7 +285,7 @@ declare namespace FsrPbChat {
   type WireEvent =
     | TextEvent | ToolUseEvent | ToolResultEvent | UsageEvent
     | ApprovalRequestEvent | ChoiceCardEvent | ActionCardEvent | CapabilityGapEvent
-    | ManualInputEvent | PlaybookOfferEvent | EnhancementOfferEvent
+    | ManualInputEvent | PlaybookOfferEvent | EnhancementOfferEvent | PersonaOfferEvent
     | StatusCardEvent | InfoCardEvent | IocCardEvent | VerdictCardEvent
     | ActivityEvent | ErrorEvent | UnknownEvent;
 
