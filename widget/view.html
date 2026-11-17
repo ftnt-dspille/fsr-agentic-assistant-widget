@@ -3519,6 +3519,32 @@
                             </div>
                         </div>
 
+                        <!-- persona_offer: the assistant offers to REMEMBER how to handle
+                             a kind of record (its standing memory for the module). Memory
+                             framing; plain words only, never tool names. The scope line is
+                             the grant the analyst is approving (read-only vs can-update). -->
+                        <div ng-if="ev.type === 'persona_offer'" class="pb-card playbook-offer-card" ng-class="{resolved: ev._resolved}"
+                             ng-attr-data-testid="persona-offer-{{ev.offerId}}">
+                            <div class="po-head">
+                                <span class="po-icon"><i class="ic ic-book" aria-hidden="true"></i></span>
+                                <span class="po-title">{{ev.headline}}</span>
+                                <span ng-if="ev._resolved" class="pb-outcome {{ev._outcome}}">{{ev._outcome}}</span>
+                            </div>
+                            <div class="po-summary" ng-if="ev.greeting"
+                                 ng-attr-data-testid="persona-offer-greeting-{{ev.offerId}}">{{ev.greeting}}</div>
+                            <div class="po-safety"
+                                 ng-attr-data-testid="persona-offer-scope-{{ev.offerId}}">{{ev.scopeLine}}</div>
+                            <div class="card-actions" ng-if="!ev._resolved">
+                                <button class="primary"
+                                        ng-attr-data-testid="persona-offer-accept-{{ev.offerId}}"
+                                        ng-click="acceptPersonaOffer(ev)">Remember this</button>
+                                <button ng-attr-data-testid="persona-offer-decline-{{ev.offerId}}"
+                                        ng-click="declinePersonaOffer(ev)">Not now</button>
+                            </div>
+                            <div class="resolution-footer" ng-if="ev._resolved && ev._resolutionText"
+                                 ng-attr-data-testid="persona-offer-resolution-{{ev.offerId}}">{{ev._resolutionText}}</div>
+                        </div>
+
                         <!-- playbook_offer (contract 2.5.0), Track U simple card. Collapsed:
                              what it does in plain words, the safety row, the trigger line,
                              one Save action. Details (closed by default): the reviewable
@@ -4166,7 +4192,7 @@
                             </details>
                         </div>
 
-                        <div ng-if="ev.type !== 'text' && ev.type !== 'choice_card' && ev.type !== 'action_card' && ev.type !== 'manual_input' && ev.type !== 'tool_call' && ev.type !== 'info_card' && ev.type !== 'capability_gap' && ev.type !== 'activity' && ev.type !== 'approval_request' && ev.type !== 'playbook_offer' && ev.type !== 'enhancement_offer' && ev.type !== 'verdict_card' && ev.type !== 'troubleshoot_card' && ev.type !== 'error'">
+                        <div ng-if="ev.type !== 'text' && ev.type !== 'choice_card' && ev.type !== 'action_card' && ev.type !== 'manual_input' && ev.type !== 'tool_call' && ev.type !== 'info_card' && ev.type !== 'capability_gap' && ev.type !== 'activity' && ev.type !== 'approval_request' && ev.type !== 'playbook_offer' && ev.type !== 'persona_offer' && ev.type !== 'enhancement_offer' && ev.type !== 'verdict_card' && ev.type !== 'troubleshoot_card' && ev.type !== 'error'">
                             <div class="step-head" ng-click="ev._open = !ev._open"
                                  ng-attr-data-testid="step-{{$parent.$index}}-{{$index}}-head">
                                 <span class="step-name">{{ev.type}}<span ng-if="ev.name">: {{ev.name}}</span></span>

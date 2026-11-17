@@ -2993,6 +2993,37 @@ function buildAssistantMessage(events: unknown, opts?: RenderOptions): Assistant
         _resolutionText: null,
         display: _e.summary || ''
       } as any, (ev as any).preceding_tool_use_id);
+    // persona_offer: the assistant drafted a standing way to handle a kind of
+    // record (its "memory" for that module) and offers to save it. Save teaches
+    // the assistant; the card shows WHAT it will do in plain words -- never tool
+    // names, enum values or JSON (analyst-facing text policy). The grant that
+    // matters is the write scope, so that is the line the analyst reads.
+    } else if ((ev as any).type === 'persona_offer') {
+      const _po = ev as any;
+      const _jv = (_po.jSONValue && typeof _po.jSONValue === 'object') ? _po.jSONValue : {};
+      const _mayWrite: string[] = Array.isArray(_jv.may_write)
+        ? _jv.may_write.filter(function (m: any) { return typeof m === 'string' && m; })
+        : [];
+      const _mod = _po.module || 'these';
+      pushCard({
+        type: 'persona_offer',
+        offerId: _po.id || ('persona-offer-' + _now(opts)),
+        module: _po.module || '',
+        label: _po.label || _jv.label || 'this kind of record',
+        headline: 'Remember how to handle ' + _mod + ' records',
+        // Plain-language scope -- the one thing the analyst is granting. Derived
+        // from write scope only; a persona always reads, and may write when
+        // may_write names its module.
+        scopeLine: _mayWrite.length
+          ? 'It will investigate ' + _mod + ' records, and can update them when you approve each change.'
+          : 'It will read and investigate ' + _mod + ' records, and never change them on its own.',
+        // An analyst-safe one-liner the drafter set (never the raw prompt, which
+        // is the assistant\'s own instructions).
+        greeting: (_jv.ui && _jv.ui.greeting) || '',
+        _outcome: null,
+        _resolved: false,
+        _open: true,
+      } as any, (ev as any).preceding_tool_use_id);
     } else if (ev.type === 'status_card' || ev.type === 'info_card' || ev.type === 'ioc_card') {
       pushCard(normalizeInfoCard(ev, opts), (ev as any).preceding_tool_use_id);
     } else if (ev.type === 'verdict_card') {

@@ -380,7 +380,13 @@
             { key: 'similar', label: 'Similar Cases', sub: 'Is this part of a campaign?',
               prompt: 'Find similar or related cases and tell me whether this is part of a larger campaign.' },
             { key: 'next', label: 'Next Actions', sub: 'Prioritized response steps',
-              prompt: 'Recommend prioritized next actions for this case based on its severity and current phase.' }
+              prompt: 'Recommend prioritized next actions for this case based on its severity and current phase.' },
+            // author_persona: teach the assistant a standing way to handle this
+            // kind of record. A dedicated, deterministic turn (connector
+            // short-circuit) drafts the persona and offers to remember it; the
+            // prompt rides as the drafting goal.
+            { key: 'author_persona', label: 'Teach How to Handle These', sub: 'Remember how to handle this kind of record',
+              prompt: 'Build a standing assistant for this kind of record: how to investigate it well and what to check every time.' }
         ];
 
         // Show the chips only over a record, in triage mode, while idle, and
@@ -2181,6 +2187,34 @@
 
 
         $scope.declinePlaybookOffer = function (event) {
+            if (!event || event._resolved || $scope.viewState !== 'idle') return;
+            event._resolved = true;
+            event._outcome = 'decline';
+            event._open = false;
+            event._resolutionText = 'Not saved';
+            event._resolvedBy = $scope.initiator.name;
+            event._resolvedAt = Date.now();
+            _runResumeOffer(event.offerId, 'decline', null);
+        };
+
+        // persona_offer: the assistant drafted the standing way to handle this
+        // kind of record (its memory for the module). Save teaches it -- accept
+        // writes the Key Store persona (connector _resume_persona_offer_accept,
+        // which updates in place when one already exists). No title or edits:
+        // the drafted persona is what the analyst reviewed on the card.
+        $scope.acceptPersonaOffer = function (event) {
+            if (!event || event._resolved || $scope.viewState !== 'idle') return;
+            event._resolved = true;
+            event._outcome = 'accept';
+            event._open = false;
+            event._resolutionText = 'Remembered';
+            event._resolvedBy = $scope.initiator.name;
+            event._resolvedAt = Date.now();
+            _runResumeOffer(event.offerId, 'accept', null);
+        };
+
+
+        $scope.declinePersonaOffer = function (event) {
             if (!event || event._resolved || $scope.viewState !== 'idle') return;
             event._resolved = true;
             event._outcome = 'decline';
