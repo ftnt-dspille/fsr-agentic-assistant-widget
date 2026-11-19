@@ -1030,6 +1030,27 @@
   transition: transform 0.15s ease, filter 0.15s ease;
 }
 .fsr-pb-widget .triage-handoff .th-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.fsr-pb-widget .triage-handoff .th-btn[disabled] { opacity: 0.5; cursor: default; filter: none; transform: none; }
+.fsr-pb-widget .triage-handoff .th-btn .ic { margin-right: 6px; }
+/* Save summary to comments: the strip grows into an editor under its title. */
+.fsr-pb-widget .triage-handoff.comment-summary { flex-wrap: wrap; }
+.fsr-pb-widget .triage-handoff .th-sub a { color: var(--accent-text); cursor: pointer; margin-left: 6px; }
+.fsr-pb-widget .comment-summary .cs-editor { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; }
+.fsr-pb-widget .comment-summary .cs-editor textarea {
+  width: 100%; box-sizing: border-box; resize: vertical; font: inherit; font-size: 12px;
+  color: var(--text); background: var(--bg-0); border: 1px solid var(--line-2);
+  border-radius: 8px; padding: 8px 10px;
+}
+.fsr-pb-widget .comment-summary .cs-error { font-size: 11px; color: var(--accent-red); }
+.fsr-pb-widget .comment-summary .cs-actions { display: flex; gap: 8px; }
+/* Where the chat is sent: a quiet line under the subtitle. */
+.fsr-pb-widget .topbar .model-badge {
+  font-size: 11px; color: var(--text-faint); margin-left: 2px;
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.fsr-pb-widget .topbar .model-badge .ic { width: 11px; height: 11px; vertical-align: -1px; }
+.fsr-pb-widget .ic-model { --ic: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%224%22 y=%224%22 width=%2216%22 height=%2216%22 rx=%222%22/%3E%3Crect x=%229%22 y=%229%22 width=%226%22 height=%226%22/%3E%3Cpath d=%22M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3%22/%3E%3C/svg%3E"); }
 
 /* build-mode orientation hint -- calmer than the handoff (no CTA button) */
 .fsr-pb-widget .build-hint {
@@ -2529,6 +2550,9 @@
                            ng-if="widgetVersion">v{{widgetVersion}}</small>
                 </div>
                 <div class="subtitle">AI-driven response · powered by FortiSOAR</div>
+                <div class="model-badge" data-testid="model-badge"
+                     ng-if="modelBadge()"
+                     title="{{modelBadge().title}}"><i class="ic ic-model" aria-hidden="true"></i><span data-testid="model-badge-label">{{modelBadge().label}}</span></div>
                 <div class="initiator" data-testid="session-owner"
                      ng-if="chatOwnerLabel()"
                      title="This conversation was started by {{chatOwnerLabel()}}">Started by {{chatOwnerLabel()}}</div>
@@ -4298,6 +4322,36 @@
                 </div>
                 <button class="th-btn" data-testid="build-from-triage"
                         ng-click="buildPlaybookFromTriage()"><i class="ic ic-hammer" aria-hidden="true"></i>Build playbook</button>
+            </div>
+
+            <div class="triage-handoff comment-summary" ng-if="showCommentSummary()" data-testid="comment-summary">
+                <div class="th-text">
+                    <span class="th-title">Save summary to comments</span>
+                    <span class="th-sub" ng-if="!commentSummary.open && !commentSummary.saved && canSaveCommentSummary()">Add this investigation's outcome to the record as a comment.</span>
+                    <span class="th-sub" ng-if="!commentSummary.open && !commentSummary.saved && !canSaveCommentSummary()" data-testid="comment-summary-empty">Nothing to summarize yet. A verdict, action or saved playbook will appear here.</span>
+                    <span class="th-sub" ng-if="commentSummary.saved" data-testid="comment-summary-saved">Saved to the record's comments.
+                        <a href="" data-testid="comment-summary-refresh" ng-click="refreshRecordPage()">Refresh to see it</a></span>
+                </div>
+                <button class="th-btn" data-testid="comment-summary-open"
+                        ng-if="!commentSummary.open"
+                        ng-disabled="!canSaveCommentSummary()"
+                        ng-click="openCommentSummary()"><i class="ic ic-pencil" aria-hidden="true"></i>Preview</button>
+                <div class="cs-editor" ng-if="commentSummary.open">
+                    <textarea data-testid="comment-summary-text" rows="9"
+                              aria-label="Comment text"
+                              ng-model="commentSummary.text"
+                              ng-disabled="commentSummary.saving"></textarea>
+                    <div class="cs-error" data-testid="comment-summary-error"
+                         ng-if="commentSummary.error">{{commentSummary.error}}</div>
+                    <div class="cs-actions">
+                        <button class="th-btn" data-testid="comment-summary-save"
+                                ng-disabled="commentSummary.saving"
+                                ng-click="saveCommentSummary()">{{commentSummary.saving ? 'Saving...' : 'Save to comments'}}</button>
+                        <button class="th-btn" data-testid="comment-summary-cancel"
+                                ng-disabled="commentSummary.saving"
+                                ng-click="closeCommentSummary()">Cancel</button>
+                    </div>
+                </div>
             </div>
 
             <div class="triage-handoff" ng-if="hasTriageDraft()" data-testid="triage-draft-handoff">

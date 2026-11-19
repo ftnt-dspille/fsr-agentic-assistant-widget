@@ -632,6 +632,80 @@
             _runTurn({ user: action.prompt, quickAction: action.key });
         };
 
+        // ─── Save summary to comments ────────────────────────────────────────
+        // Over a record whose module takes comments, the analyst can file the
+        // conversation's outcome as a comment on that record. The text is built
+        // from the cards already on screen (fsrPbCardsService.buildCommentSummary:
+        // no model call), shown for editing, and only then POSTed to
+        // /api/3/comments linked to the record.
+        //
+        // "Module takes comments" is read off the record when it already carries
+        // its comments relationship, else (live only) from the module's metadata,
+        // once per module. Fails closed: unknown means no button.
+        var _commentsCap = {};   // module -> true | false | 'pending'
+        function _hasOwn(o, k) { return !!o && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k); }
+        function _probeCommentsCapability(module) {
+            _commentsCap[module] = 'pending';
+            $http.get('/api/3/model_metadatas', { params: { type: module, '$relationships': true } }).then(function (resp) {
+                _commentsCap[module] = fsrPbCardsService.moduleSupportsComments(resp && resp.data, module);
+            }, function () { _commentsCap[module] = false; });
+        }
+        $scope.commentsSupported = function () {
+            var e = $scope.entityContext;
+            if (!e || !e.iri || !e.module || $scope.inPlaybookEditor) return false;
+            if (_hasOwn(e.record, 'comments')) return true;
+            var c = _commentsCap[e.module];
+            if (c === true) return true;
+            if (c === undefined && fsrPbAgentService.modeInfo($scope.config).mode === 'live') {
+                _probeCommentsCapability(e.module);
+            }
+            return false;
+        };
+
+        $scope.commentSummary = { open: false, text: '', saving: false, saved: false, error: '' };
+
+        function _hasUserTurn() {
+            for (var i = 0; i < $scope.messages.length; i++) {
+                if ($scope.messages[i].role === 'user') return true;
+            }
+            return false;
+        }
+        $scope.showCommentSummary = function () {
+            if (!_hasUserTurn() || $scope.connectorReady === false) return false;
+            return $scope.commentsSupported();
+        };
+        // False (button disabled) while there is no verdict, action or playbook
+        // to report on.
+        $scope.canSaveCommentSummary = function () {
+            if ($scope.viewState === 'sending') return false;
+            return !fsrPbCardsService.buildCommentSummary($scope.messages).empty;
+        };
+        $scope.openCommentSummary = function () {
+            var s = fsrPbCardsService.buildCommentSummary($scope.messages, { now: Date.now() });
+            if (s.empty) return;
+            $scope.commentSummary = { open: true, text: s.text, saving: false, saved: false, error: '' };
+        };
+        $scope.closeCommentSummary = function () {
+            $scope.commentSummary = { open: false, text: '', saving: false, saved: false, error: '' };
+        };
+        $scope.saveCommentSummary = function () {
+            var cs = $scope.commentSummary, e = $scope.entityContext;
+            if (!cs.open || cs.saving || !e || !e.iri || !e.module) return;
+            if (!String(cs.text || '').trim()) { cs.error = 'Write something to save.'; return; }
+            cs.saving = true; cs.error = '';
+            _logEvent('comment_summary_save', { module: e.module });
+            $http.post('/api/3/comments', fsrPbCardsService.commentPayload(cs.text, e.iri, e.module)).then(function () {
+                $scope.commentSummary = { open: false, text: '', saving: false, saved: true, error: '' };
+            }, function (err) {
+                cs.saving = false;
+                cs.error = 'Could not save the comment. ' + _sanitizeError(err);
+            });
+        };
+        // The record page does not repaint its comments by itself.
+        $scope.refreshRecordPage = function () {
+            try { $injector.get('$state').reload(); } catch (err) { $window.location.reload(); }
+        };
+
         // ─── "Pull in page details" (explicit context fill) ──────────────────
         // Grabs the current record's fields on demand and drops a rendered
         // summary into the composer, so the analyst can add a question before
@@ -4978,7 +5052,36 @@
                      total: total, cost: Number(e.cost_usd) || 0 };
         }
 
+        // ── Model badge ─────────────────────────────────────────────────────
+        // Where the conversation is going: the model named by the newest usage
+        // frame (live poll, committed transcript, or a replayed turn). Before
+        // any turn has answered, the badge falls back to the connector
+        // configuration in use; with neither it stays hidden.
+        $scope.lastModel = '';
+        function _noteModel(events) {
+            var m = fsrPbCardsService.latestModel(events);
+            if (m) $scope.lastModel = m;
+        }
+        // Memoized on its label: a template binding that gets a fresh object
+        // every digest never settles ($rootScope:infdig).
+        var _badgeMemo = { label: null, badge: null };
+        $scope.modelBadge = function () {
+            var d = fsrPbCardsService.describeModel($scope.lastModel);
+            var ci = $scope.connectorInfo;
+            var label = d ? d.label : (ci && ci.configName ? 'Configuration: ' + ci.configName : '');
+            if (!label) return null;
+            if (_badgeMemo.label !== label) {
+                _badgeMemo = { label: label, badge: {
+                    label: label,
+                    title: d ? 'Your messages are sent to this model.'
+                        : 'Your messages go to the model set in this connector configuration. The model name shows after the first reply.'
+                } };
+            }
+            return _badgeMemo.badge;
+        };
+
         function _absorbUsage(events) {
+            _noteModel(events);
             var acc = { input: 0, output: 0, cached: 0, total: 0, cost: 0 };
             (events || []).forEach(function (e) {
                 if (!e || e.type !== 'usage') return;
@@ -5763,7 +5866,9 @@
                         ts: tsMs
                     });
                 }
+                if (typeof t.model === 'string' && t.model) $scope.lastModel = t.model;
                 if (t.transcript) {
+                    _noteModel(t.transcript);
                     _appendAssistantMessage(t.transcript);
                     // Stamp the assistant message's original time (buildAssistantMessage
                     // defaults to now; on replay we know when it really happened).

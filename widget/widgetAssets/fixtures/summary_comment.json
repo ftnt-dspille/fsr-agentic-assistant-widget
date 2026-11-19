@@ -1,0 +1,86 @@
+{
+    "scenario": "summary_comment",
+    "_comment": "One triage turn with a verdict card, a pending action card and a usage frame that names the model. Drives the header model badge and the Save summary to comments flow. The resume approves the action.",
+    "delays": {
+        "chat_turn": 50,
+        "chat_resume": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "awaiting_action_card",
+                "transcript": [
+                    {
+                        "type": "tool_use",
+                        "id": "tu-sc-1",
+                        "name": "get_record",
+                        "input": { "module": "alerts", "uuid": "d39ecc9a-2968-42d5-948d-ce96fd76b227" }
+                    },
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": "tu-sc-1",
+                        "name": "get_record",
+                        "content": { "ok": true, "name": "Suspicious outbound beacon" }
+                    },
+                    {
+                        "type": "verdict_card",
+                        "id": "vc-sc-1",
+                        "preceding_tool_use_id": "tu-sc-1",
+                        "disposition": "suspicious",
+                        "severity": "high",
+                        "confidence": 0.78,
+                        "summary": "The host is beaconing to a known bad address.",
+                        "findings": [
+                            { "claim": "The host contacted 198.51.100.9 twice in ten minutes", "evidence": ["tu-sc-1"] }
+                        ],
+                        "unknowns": ["Whether any data left the network"]
+                    },
+                    {
+                        "type": "action_card",
+                        "id": "card-sc-block",
+                        "connector": "fortinet-fortigate",
+                        "operation": "block_ip",
+                        "summary": "Block 198.51.100.9 on the edge firewall",
+                        "args": { "ip": "198.51.100.9" },
+                        "editable_fields": ["ip"]
+                    },
+                    {
+                        "type": "usage",
+                        "model": "anthropic/claude-haiku-5-5",
+                        "input_tokens": 1200,
+                        "output_tokens": 300,
+                        "cost_usd": 0.004
+                    }
+                ]
+            }
+        },
+        {
+            "action": "chat_resume",
+            "response": {
+                "turn_id": "mock-turn-2",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "The address is now blocked."
+                    },
+                    {
+                        "type": "usage",
+                        "model": "anthropic/claude-haiku-5-5",
+                        "input_tokens": 400,
+                        "output_tokens": 40,
+                        "cost_usd": 0.001
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    "scenario": "summary_comment_plain",
+    "_comment": "A text-only answer: no verdict, action or playbook, so there is nothing to file as a comment.",
+    "delays": {
+        "chat_turn": 50
+    },
+    "responses": [
+        {
+            "action": "chat_history",
+            "response": {
+                "turns": []
+            }
+        },
+        {
+            "action": "chat_turn",
+            "response": {
+                "turn_id": "mock-turn-1",
+                "stop_reason": "end_turn",
+                "transcript": [
+                    {
+                        "type": "text",
+                        "text": "Alerts are records of detected security events."
+                    }
+                ]
+            }
+        }
+    ]
+}
