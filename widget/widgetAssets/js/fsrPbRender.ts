@@ -2637,6 +2637,25 @@ function buildAssistantMessage(events: unknown, opts?: RenderOptions): Assistant
         if (ev.id) emitToolIds[ev.id] = true;
         return;
       }
+      // The connector sends a tool's chip twice under one id: early, when the
+      // model starts the call (no arguments yet), then at dispatch with the full
+      // input. Two entries with one id crash the timeline's ng-repeat
+      // (ngRepeat:dupes), which renders the WHOLE reply bubble empty: live, a
+      // block ask staged its action card behind a blank message. Update the
+      // first entry in place instead.
+      if (ev.id) {
+        const seen = (msg.events as any[]).find(function (e: any) {
+          return e.type === 'tool_call' && e._toolUseId === ev.id;
+        });
+        if (seen) {
+          if (ev.name) seen.name = ev.name;
+          seen.label = toolCallLabel(ev.name || seen.name, ev.input, ev.label);
+          if (ev.input && Object.keys(ev.input).length) {
+            seen.inputDisplay = JSON.stringify(ev.input, null, 2);
+          }
+          return;
+        }
+      }
       msg.events.push({
         type: 'tool_call',
         name: ev.name,
