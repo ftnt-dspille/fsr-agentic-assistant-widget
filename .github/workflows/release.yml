@@ -7,7 +7,8 @@
 #   3. installs the harness from its pinned lockfile (the install runs the
 #      harness prepare step, which compiles packager.js; packager.js is not
 #      tracked in the devkit);
-#   4. packs widget/ into <name>-<version>.tgz with the harness packager;
+#   4. packs widget/ into <name>-<version>.tgz with the harness packager in
+#      release form (development false, <name><ver>Ctrl), and verifies it;
 #   5. creates the GitHub release for the tag with the .tgz attached.
 #
 # Only the tag push starts this. The workflow does not push code or tags.
@@ -75,12 +76,28 @@ jobs:
           set -euo pipefail
           node -e '
             const { packageWidget } = require(process.env.HARNESS_DIR + "/packager.js");
-            packageWidget(process.env.WIDGET_DIR, process.env.OUT_DIR)
+            packageWidget(process.env.WIDGET_DIR, process.env.OUT_DIR, { release: true })
               .then((r) => console.log(JSON.stringify(r, null, 2)))
               .catch((e) => { console.error(e.message); process.exit(1); });
           '
           ls -l dist
           tar -tzf dist/*.tgz
+
+      - name: Verify the release form (development false, no DevCtrl)
+        run: |
+          set -euo pipefail
+          mkdir -p check && tar -xzf dist/*.tgz -C check
+          python3 - <<'PY'
+          import json, pathlib, re, sys
+          root = pathlib.Path("check")
+          info = json.loads(next(root.glob("*/info.json")).read_text())
+          bad = [] if info.get("development") is False else [f"development={info.get('development')!r}"]
+          bad += [str(p) for p in root.rglob("*") if p.is_file() and p.suffix in (".js", ".html", ".json")
+                  and re.search(r"DevCtrl\b", p.read_text(errors="ignore"))]
+          if bad:
+              sys.exit("not a release-form widget: " + ", ".join(bad))
+          print("release form OK")
+          PY
 
       - name: Create the GitHub release
         working-directory: widget-repo
