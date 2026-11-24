@@ -1583,6 +1583,16 @@
 .fsr-pb-widget .pb-card.verdict-card .verdict-sources {
   font-size: 12px; color: var(--text-dim); margin: 0 0 10px;
 }
+.fsr-pb-widget .pb-card.verdict-card .verdict-advisory {
+  margin: 0 0 10px; padding: 6px 8px; border-radius: 6px;
+  border: 1px solid var(--line-2); background: var(--surface-2, transparent);
+}
+.fsr-pb-widget .pb-card.verdict-card .verdict-advisory-line {
+  display: flex; align-items: flex-start; gap: 6px;
+  font-size: 12px; color: var(--text-dim);
+}
+.fsr-pb-widget .pb-card.verdict-card .verdict-advisory-line + .verdict-advisory-line { margin-top: 4px; }
+.fsr-pb-widget .pb-card.verdict-card .verdict-advisory-line .ic { margin-top: 2px; }
 .fsr-pb-widget .pb-card.verdict-card .verdict-unknowns {
   margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-2);
 }
@@ -3938,6 +3948,11 @@
                             <div class="verdict-summary" ng-if="ev.summary" ng-bind-html="renderMarkdown(ev.summary)"></div>
                             <div class="verdict-sources" ng-if="ev.sourcesLine"
                                  ng-attr-data-testid="verdict-sources-{{ev.cardId}}">{{ev.sourcesLine}}</div>
+                            <div class="verdict-advisory" ng-if="ev.advisoryLines.length"
+                                 ng-attr-data-testid="verdict-advisory-{{ev.cardId}}">
+                                <div ng-repeat="line in ev.advisoryLines" class="verdict-advisory-line"
+                                     ng-attr-data-testid="verdict-advisory-{{ev.cardId}}-{{$index}}"><i class="ic ic-info" aria-hidden="true"></i><span>{{line}}</span></div>
+                            </div>
                             <div ng-if="ev.findings.length" class="verdict-findings">
                                 <div class="verdict-findings-label">Findings</div>
                                 <div ng-repeat="f in ev.findings" class="verdict-finding"

@@ -185,3 +185,49 @@ test.describe('verdict_card', () => {
     await expect(page.locator(CARD)).toBeVisible();
   });
 });
+
+// Phase 2 step 3a: the records advisory. Advisory only: it never changes the
+// verdict, so the same card keeps its badge, confidence and actions.
+test.describe('verdict_card records advisory', () => {
+  async function bootMock(page, mock, cardId) {
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    await page.addInitScript((id) => {
+      localStorage.setItem('harness:config:' + id, JSON.stringify({
+        connectorName: 'fortinet-fsr-playbook-builder', defaultIntent: 'triage',
+        maxTurns: 10, showUsage: true, seedFromEntity: false
+      }));
+      localStorage.setItem('harness.widget', id);
+      localStorage.setItem('harness.ctx', 'dashboard');
+      localStorage.removeItem('fsrPbSession');
+    }, WIDGET_ID);
+    await page.goto(`/?widget=${WIDGET_ID}&context=Dashboard&mock=${mock}&fastmock=1&opener=1`,
+      { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => window.__agenticAssistant__ && typeof window.__agenticAssistant__.state === 'string',
+      null, { timeout: 25000 });
+    const card = page.locator(`[data-testid="verdict-card-${cardId}"]`);
+    await card.waitFor({ state: 'visible', timeout: 8000 });
+    return { card, errors };
+  }
+
+  test('shows one plain line per record kind, with an icon and no internals', async ({ page }) => {
+    const { card, errors } = await bootMock(page, 'verdict_advisory', 'vc-adv');
+    const adv = card.locator('[data-testid="verdict-advisory-vc-adv"]');
+    await expect(adv).toBeVisible();
+    await expect(card.locator('[data-testid="verdict-advisory-vc-adv-0"]'))
+      .toHaveText('A change record for this host exists that this investigation did not read.');
+    await expect(card.locator('[data-testid="verdict-advisory-vc-adv-1"]'))
+      .toHaveText('The asset record for this host conflicts with this verdict.');
+    await expect(adv.locator('i.ic.ic-info')).toHaveCount(2);
+    // the verdict is untouched
+    await expect(card.locator('.verdict-badge')).toHaveText('Suspicious');
+    await expect(card.locator('.verdict-confidence')).toHaveText('78% confidence');
+    expect(errors).toEqual([]);
+  });
+
+  test('a card without an advisory shows no advisory block', async ({ page }) => {
+    const { card } = await bootMock(page, 'verdict_triage', 'vc-001');
+    await expect(card.locator('.verdict-advisory')).toHaveCount(0);
+  });
+});

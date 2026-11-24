@@ -1,0 +1,147 @@
+{
+  "scenario": "verdict_advisory",
+  "contract_version": "2.8.0",
+  "default_session_id": "demo-verdict-adv-001",
+  "_doc": "Verdict card with the records advisory (Phase 2 step 3a): the framework says a change record exists that the investigation did not read, and the asset record conflicts with the verdict. Advisory only; the card is otherwise the verdict_triage card.",
+  "delays": {
+    "chat_turn": 500
+  },
+  "responses": [
+    {
+      "action": "chat_history",
+      "response": {
+        "turns": []
+      }
+    },
+    {
+      "action": "chat_turn",
+      "response": {
+        "turn_id": "t-verdict-demo",
+        "contract_version": "2.8.0",
+        "stop_reason": "end_turn",
+        "transcript": [
+          {
+            "type": "tool_use",
+            "id": "lookup-ip-1",
+            "name": "search_module_records",
+            "input": {
+              "module": "indicators",
+              "search": "198.51.100.9"
+            }
+          },
+          {
+            "type": "tool_result",
+            "tool_use_id": "lookup-ip-1",
+            "tool": "search_module_records",
+            "content": "{\"status\": \"success\", \"records\": [{\"value\": \"198.51.100.9\", \"typeOfIndicator\": \"IP Address\", \"reputation\": \"No Reputation\", \"source\": \"Internal network\"}]}"
+          },
+          {
+            "type": "tool_use",
+            "id": "hunt-hash-1",
+            "name": "search_module_records",
+            "input": {
+              "module": "indicators",
+              "search": "d41d8cd98f00b204e9800998ecf8427e"
+            }
+          },
+          {
+            "type": "tool_result",
+            "tool_use_id": "hunt-hash-1",
+            "tool": "search_module_records",
+            "content": "{\"status\": \"success\", \"records\": [{\"value\": \"d41d8cd98f00b204e9800998ecf8427e\", \"typeOfIndicator\": \"FileHash-MD5\", \"reputation\": \"Malicious\", \"description\": \"Suspicious binary detected during hunting\"}]}"
+          },
+          {
+            "type": "tool_use",
+            "id": "get-asset-1",
+            "name": "get_record",
+            "input": {
+              "module": "assets",
+              "uuid": "asset-uuid-12345"
+            }
+          },
+          {
+            "type": "tool_result",
+            "tool_use_id": "get-asset-1",
+            "tool": "get_record",
+            "content": "{\"status\": \"success\", \"record\": {\"hostname\": \"workstation-42\", \"ip\": \"198.51.100.9\", \"owner\": \"john.smith\", \"os\": \"Windows 10\", \"department\": \"Engineering\"}}"
+          },
+          {
+            "type": "text",
+            "text": "Verdict: malicious — high confidence.\n\nWhy:\n- The file hash matched a known malware family.\n- The host beaconed to the same IP twice."
+          },
+          {
+            "type": "verdict_card",
+            "id": "vc-adv",
+            "disposition": "suspicious",
+            "severity": "high",
+            "confidence": 0.78,
+            "summary": "This alert shows signs of suspicious activity. The malicious file hash combined with abnormal network behavior warrants immediate isolation and further investigation.",
+            "findings": [
+              {
+                "claim": "Malicious file detected on the system",
+                "evidence": [
+                  "hunt-hash-1"
+                ]
+              },
+              {
+                "claim": "Internal IP shows no external reputation but is involved in the alert",
+                "evidence": [
+                  "lookup-ip-1",
+                  "get-asset-1"
+                ]
+              },
+              {
+                "claim": "Asset is in Engineering department with standard access",
+                "evidence": [
+                  "get-asset-1"
+                ]
+              }
+            ],
+            "unknowns": [
+              "Lateral movement extent - unclear if other systems are compromised",
+              "Initial compromise vector - how the malware got there",
+              "User awareness - whether the user intentionally executed the file"
+            ],
+            "sources_checked": [
+              "FortiSIEM",
+              "FortiEDR"
+            ],
+            "recommended_actions": [
+              {
+                "label": "Isolate the workstation from the network",
+                "tool": "fortigate_block"
+              },
+              {
+                "label": "Collect forensic evidence",
+                "tool": "forensic_collection"
+              },
+              {
+                "label": "Notify Engineering management",
+                "tool": "email_notification"
+              }
+            ],
+            "premise": {
+              "status": "contradicted",
+              "records": [
+                "get-asset-1"
+              ],
+              "unread_kinds_exist": [
+                "change"
+              ],
+              "advisory": [
+                {
+                  "kind": "change",
+                  "state": "unread"
+                },
+                {
+                  "kind": "asset",
+                  "state": "conflict"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

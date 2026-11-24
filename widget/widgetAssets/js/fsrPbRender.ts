@@ -337,6 +337,10 @@ interface VerdictCard {
   // computes them from missing source types, failed sources and empty searches;
   // `unknown` is the verdict unknown the line answers (shown under Details).
   whatWouldHelp: Array<{ line: string; unknown: string; sources: string[] }>;
+  // Phase 2 step 3a (advisory only): plain lines about the subject's records the
+  // investigation did not read or that conflict with the verdict. Never changes
+  // the verdict or what may run; [] when the framework says nothing.
+  advisoryLines: string[];
   recommendedActions: Array<{ label: string; tool?: string; args?: Record<string, unknown> }>;
   display: string;
 }
@@ -2311,6 +2315,27 @@ function _whatWouldHelp(raw: unknown, disposition: string): VerdictCard['whatWou
   return out.slice(0, 3);
 }
 
+// Step 3a: the framework names a record kind and a state per entry
+// ({kind: 'asset'|'change', state: 'unread'|'conflict'}); the card words it.
+// Unknown kinds or states are dropped, repeats collapse, two lines at most.
+const _ADVISORY_LINES: { [key: string]: string } = {
+  'change/unread': 'A change record for this host exists that this investigation did not read.',
+  'asset/unread': 'An asset record for this host exists that this investigation did not read.',
+  'change/conflict': 'A change record for this host conflicts with this verdict.',
+  'asset/conflict': 'The asset record for this host conflicts with this verdict.'
+};
+function _advisoryLines(premise: unknown): string[] {
+  const raw = premise && typeof premise === 'object' ? (premise as any).advisory : null;
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  raw.forEach(function (a: any) {
+    if (!a || typeof a !== 'object') return;
+    const line = _ADVISORY_LINES[String(a.kind) + '/' + String(a.state)];
+    if (line && out.indexOf(line) < 0) out.push(line);
+  });
+  return out.slice(0, 2);
+}
+
 function normalizeVerdictCard(ev: unknown, opts?: RenderOptions): VerdictCard {
   const event = (ev as any) || {};
   const conf = typeof event.confidence === 'number'
@@ -2347,6 +2372,7 @@ function normalizeVerdictCard(ev: unknown, opts?: RenderOptions): VerdictCard {
     }),
     sourcesLine: _sourcesLine(event.sources_checked),
     whatWouldHelp: _whatWouldHelp(event.what_would_help, disposition),
+    advisoryLines: _advisoryLines(event.premise),
     recommendedActions: (Array.isArray(event.recommended_actions) ? event.recommended_actions : []).map(function (a: any) {
       a = (a && typeof a === 'object') ? a : {};
       return {
