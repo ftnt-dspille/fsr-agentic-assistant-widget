@@ -1,0 +1,51 @@
+# Runs the widget's unit tests (jest) on every push and pull request.
+#
+# The tests run inside the devkit harness (ftnt-dspille/fsr-widget-devkit),
+# so this checks out both and puts the widget where the harness finds it
+# (devkit/widgets-src/agenticAssistant), the same layout as a local checkout.
+# `make ship` waits for the job named in .github/required-checks.
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the devkit (harness)
+        uses: actions/checkout@v4
+        with:
+          repository: ftnt-dspille/fsr-widget-devkit
+          ref: main
+          path: devkit
+
+      - name: Check out the widget repo into the devkit
+        uses: actions/checkout@v4
+        with:
+          path: devkit/widgets-src/agenticAssistant
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm (harness pins pnpm 8.14.2)
+        run: npm install -g pnpm@8.14.2
+
+      - name: Install the harness
+        working-directory: devkit/fortisoar-widget-harness
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit tests
+        working-directory: devkit
+        run: make test-unit WIDGET=agenticAssistant
