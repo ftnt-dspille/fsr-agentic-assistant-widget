@@ -2102,6 +2102,12 @@
             return $window.FsrPbRender.actionCardComplete(event, event.args);
         };
 
+        // Several configurations and none picked: Approve waits for the analyst.
+        $scope.actionCardNeedsConfig = function (event) {
+            return $window.FsrPbRender.actionCardNeedsConfig(event);
+        };
+        $scope.CONFIG_REQUIRED_TEXT = 'Choose which configuration to run this on before approving.';
+
         $scope.actionCardBranchLabel = function (event) {
             if (!event) return '';
             return $window.FsrPbRender.actionCardBranchLabel(event, event.args);
@@ -2174,6 +2180,10 @@
                 // _flagPendingCardsUnverified). Don't clobber that terminal state
                 // with the optimistic 'approve' stamp.
                 if (event._outcome === 'unverified') return;
+                // The connector wants a configuration pick and left the card
+                // open: show the picker with its choices, not a failure.
+                if (res && res.error && res.error.code === 'config_required'
+                        && _askForConfig(event, res.error)) return;
                 // Someone answered this card first (the Monitor queue, another
                 // tab). Nothing ran on this click: show THEIR decision, never a
                 // "Confirmed by <me>" for an action this analyst did not take.
@@ -2201,12 +2211,23 @@
                 // Keep the card actionable; _handleError already ran the global
                 // banner + scrub. Surface a bounded inline copy for in-card retry.
                 event._submitting = false;
+                var ce = err && (err.code === 'config_required' ? err
+                    : (err.error && err.error.code === 'config_required' ? err.error : null));
+                if (ce && _askForConfig(event, ce)) { $scope.errorMessage = ''; return; }
                 event._error = _sanitizeError(err);
             });
         }
 
+        function _askForConfig(event, error) {
+            if (!$window.FsrPbRender.applyConfigChoices(event, error.choices)) return false;
+            event._error = null;
+            if ($scope.viewState === 'error') _setState('idle');
+            return true;
+        }
+
         $scope.confirmActionCard = function (event) {
-            if (!event || event._resolved || $scope.cardBusy(event) || !$scope.actionCardValid(event)) return;
+            if (!event || event._resolved || $scope.cardBusy(event) || !$scope.actionCardValid(event)
+                || $scope.actionCardNeedsConfig(event)) return;
             var grant = event._grantAlways ? 'always' : undefined;
             _resolveCardVia(event, 'approve', 'Confirmed ' + event.summary, function () {
                 return _runResumeAction(event.cardId, 'approve', event.args, grant, event.configId);

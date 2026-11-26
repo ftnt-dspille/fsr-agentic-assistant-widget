@@ -88,6 +88,8 @@ interface ActionCard {
   configOptions: CardConfig[];
   /** The picked configuration id -- sent with the approval. */
   configId: string;
+  /** Several configurations and none is the one: Approve waits for a pick. */
+  configRequired: boolean;
   _open: boolean;
   _resolved: boolean;
   _outcome: unknown;
@@ -391,6 +393,8 @@ interface FsrPbRenderAPI {
   _plainText: (raw: unknown) => string;
   resolveActionFields: (card: ActionCard | null, args?: Record<string, unknown>) => Field[];
   actionCardComplete: (card: ActionCard | null, args?: Record<string, unknown>) => boolean;
+  actionCardNeedsConfig: (card: ActionCard | null) => boolean;
+  applyConfigChoices: (card: ActionCard | null, raw: unknown) => boolean;
   actionCardBranchLabel: (card: ActionCard | null, args?: Record<string, unknown>) => string;
   actionCardArgSummary: (
     card: ActionCard | null,
@@ -749,6 +753,7 @@ function normalizeActionCard(ev: unknown, opts?: RenderOptions): ActionCard {
     runsOn: runsOn,
     configOptions: configOptions,
     configId: runsOn ? runsOn.id : '',
+    configRequired: event.config_required === true && !runsOn,
     _open: true,
     _resolved: false,
     _outcome: null,
@@ -794,6 +799,24 @@ function _cardConfigOptions(raw: unknown): CardConfig[] {
   if (!Array.isArray(raw)) return [];
   const out = raw.map(_cardConfig).filter(function (c): c is CardConfig { return !!c; });
   return out.length > 1 ? out : [];
+}
+
+// The connector refused an approval that named no configuration and sent the
+// ones it would take. Re-show the picker with them and keep the card open.
+// Returns false when the choices name nothing the analyst could pick.
+function applyConfigChoices(card: ActionCard | null, raw: unknown): boolean {
+  if (!card || !Array.isArray(raw)) return false;
+  const opts = raw.map(_cardConfig).filter(function (c): c is CardConfig { return !!c; });
+  if (!opts.length) return false;
+  card.configOptions = opts;
+  card.configRequired = true;
+  card.configId = '';
+  return true;
+}
+
+// True while the card must be given a configuration and has none.
+function actionCardNeedsConfig(card: ActionCard | null): boolean {
+  return !!card && card.configRequired === true && !card.configId;
 }
 
 // --- run context on a run_playbook approval --------------------------------
@@ -3271,6 +3294,8 @@ const api: FsrPbRenderAPI = {
   _plainText: _plainText,
   resolveActionFields: resolveActionFields,
   actionCardComplete: actionCardComplete,
+  actionCardNeedsConfig: actionCardNeedsConfig,
+  applyConfigChoices: applyConfigChoices,
   actionCardBranchLabel: actionCardBranchLabel,
   actionCardArgSummary: actionCardArgSummary,
   inferToolStatus: inferToolStatus,

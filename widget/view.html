@@ -3229,15 +3229,18 @@
                                      connector has more than one configuration, a line
                                      otherwise. An agent-bound one reaches targets the
                                      master cannot, and is slower: say so before Approve. -->
-                                <div ng-if="actionCardRunsOn(ev)" class="runs-on"
+                                <div ng-if="actionCardRunsOn(ev) || ev.configRequired" class="runs-on"
                                      ng-attr-data-testid="action-runs-on-{{ev.cardId}}">
                                     <label class="runs-on-label" ng-attr-for="runs-on-{{ev.cardId}}">Runs on</label>
                                     <select ng-if="ev.configOptions.length && !ev._resolved"
                                             id="runs-on-{{ev.cardId}}"
                                             ng-model="ev.configId"
                                             ng-attr-data-testid="action-runs-on-select-{{ev.cardId}}">
+                                        <option ng-if="ev.configRequired" value="">Choose a configuration</option>
                                         <option ng-repeat="opt in ev.configOptions track by opt.id" value="{{opt.id}}">{{opt.label}}</option>
                                     </select>
+                                    <div ng-if="actionCardNeedsConfig(ev) && !ev._resolved" class="runs-on-note" role="status"
+                                         ng-attr-data-testid="action-config-required-{{ev.cardId}}">{{CONFIG_REQUIRED_TEXT}}</div>
                                     <span ng-if="!ev.configOptions.length || ev._resolved" class="runs-on-value"
                                           ng-attr-data-testid="action-runs-on-value-{{ev.cardId}}">{{actionCardRunsOn(ev).label}}</span>
                                     <div ng-if="actionCardRunsOn(ev).runsOnAgent && !ev._resolved" class="runs-on-note"
@@ -3346,7 +3349,8 @@
                             </div>
                             <div class="card-actions" ng-if="!ev._resolved">
                                 <button class="primary"
-                                        ng-disabled="cardBusy(ev) || !actionCardValid(ev)"
+                                        ng-disabled="cardBusy(ev) || !actionCardValid(ev) || actionCardNeedsConfig(ev)"
+                                        ng-attr-title="{{actionCardNeedsConfig(ev) ? CONFIG_REQUIRED_TEXT : undefined}}"
                                         ng-attr-data-testid="action-confirm-{{ev.cardId}}"
                                         ng-click="confirmActionCard(ev)">{{ev._submitting ? 'Executing…' : (ev.confirmLabel || 'Confirm & Execute')}}</button>
                                 <button ng-disabled="cardBusy(ev)"
