@@ -122,11 +122,13 @@ test.describe('Triage context interactions (Phase F)', () => {
       const grid = page.locator('[data-testid="quick-actions"]');
       await expect(grid).toBeVisible();
 
-      // All 6 cards present.
+      // All 7 cards present (six investigation chips plus author_persona, the
+      // "Teach How to Handle These" chip added with the persona builder).
       const cards = page.locator('[data-testid^="quick-action-"]');
-      await expect(cards).toHaveCount(6);
+      await expect(cards).toHaveCount(7);
       const cardIds = await cards.evaluateAll(els => els.map(el => el.getAttribute('data-testid')));
       expect(cardIds.sort()).toEqual([
+        'quick-action-author_persona',
         'quick-action-blast',
         'quick-action-iocs',
         'quick-action-mitre',
