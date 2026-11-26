@@ -96,7 +96,8 @@ describe("a config_required card waits for a configuration pick", () => {
 
 describe("a config_required refusal re-shows the picker", () => {
   const REFUSE = { ok: false, error: { code: "config_required",
-    message: "Pick a configuration.", choices: [LOCAL, OTHER] } };
+    message: "Pick a configuration.", card_id: "card-1",
+    config_options: [LOCAL, OTHER], choices: ["fortigate-lab", "fortigate-dr"] } };
 
   test("the card stays open with the choices, needs a pick, and shows no failure", () => {
     const { $scope, $rootScope } = boot(() => REFUSE);
@@ -110,6 +111,19 @@ describe("a config_required refusal re-shows the picker", () => {
     expect(c.configId).toBe("");
     expect($scope.actionCardNeedsConfig(c)).toBe(true);
     expect($scope.viewState).not.toBe("error");
+  });
+
+  test("with no config_options the choice names fill the picker", () => {
+    const names = { ok: false, error: { code: "config_required", message: "x", choices: ["fortigate-lab", "fortigate-dr"] } };
+    const { $scope, $rootScope, resumeSpy } = boot(() => names);
+    const c = card({});
+    $scope.messages.push({ role: "assistant", text: "", events: [c], ts: 1 });
+    $scope.confirmActionCard(c);
+    $rootScope.$digest();
+    expect(c.configOptions.map((o) => o.label)).toEqual(["fortigate-lab", "fortigate-dr"]);
+    c.configId = "fortigate-dr";
+    $scope.confirmActionCard(c);
+    expect(resumeSpy.mock.calls[1][1].config).toBe("fortigate-dr");
   });
 
   test("picking one then approving sends it", () => {

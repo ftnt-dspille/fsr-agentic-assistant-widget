@@ -76,6 +76,11 @@
                     "code": "config_required",
                     "message": "Pick a configuration.",
                     "choices": [
+                        "fortigate-lab",
+                        "fortigate-dr"
+                    ],
+                    "card_id": "cr-refuse",
+                    "config_options": [
                         {
                             "id": "loc-1",
                             "name": "fortigate-lab",

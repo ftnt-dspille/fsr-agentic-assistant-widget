@@ -394,7 +394,7 @@ interface FsrPbRenderAPI {
   resolveActionFields: (card: ActionCard | null, args?: Record<string, unknown>) => Field[];
   actionCardComplete: (card: ActionCard | null, args?: Record<string, unknown>) => boolean;
   actionCardNeedsConfig: (card: ActionCard | null) => boolean;
-  applyConfigChoices: (card: ActionCard | null, raw: unknown) => boolean;
+  applyConfigChoices: (card: ActionCard | null, options: unknown, names?: unknown) => boolean;
   actionCardBranchLabel: (card: ActionCard | null, args?: Record<string, unknown>) => string;
   actionCardArgSummary: (
     card: ActionCard | null,
@@ -804,8 +804,15 @@ function _cardConfigOptions(raw: unknown): CardConfig[] {
 // The connector refused an approval that named no configuration and sent the
 // ones it would take. Re-show the picker with them and keep the card open.
 // Returns false when the choices name nothing the analyst could pick.
-function applyConfigChoices(card: ActionCard | null, raw: unknown): boolean {
-  if (!card || !Array.isArray(raw)) return false;
+// The refusal's `config_options` are config objects; its `choices` are names,
+// used only when no options came (a name is accepted where an id is).
+function applyConfigChoices(card: ActionCard | null, options: unknown, names?: unknown): boolean {
+  if (!card) return false;
+  let raw: unknown[] = Array.isArray(options) ? options : [];
+  if (!raw.length && Array.isArray(names)) {
+    raw = names.filter(function (n) { return typeof n === 'string' && n; })
+      .map(function (n) { return { id: n, name: n }; });
+  }
   const opts = raw.map(_cardConfig).filter(function (c): c is CardConfig { return !!c; });
   if (!opts.length) return false;
   card.configOptions = opts;

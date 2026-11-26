@@ -2219,7 +2219,7 @@
         }
 
         function _askForConfig(event, error) {
-            if (!$window.FsrPbRender.applyConfigChoices(event, error.choices)) return false;
+            if (!$window.FsrPbRender.applyConfigChoices(event, error.config_options, error.choices)) return false;
             event._error = null;
             if ($scope.viewState === 'error') _setState('idle');
             return true;
